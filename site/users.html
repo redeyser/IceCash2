@@ -1,0 +1,33 @@
+<table class="w33">
+<tr>
+<td>
+<div class="window padd marg">
+    <span class='flame big'>Пользователи</span>
+    <table>
+        <tr class="black norm sel" onclick='edit_user(0);'><td>Добавить</td></tr>
+        <tr class="ice bold norm sel" onclick='_relocate("/sets");'><td>Настройки</td></tr>
+        <tr class="ice bold norm sel" onclick='_relocate("/");'><td>В начало</td></tr>
+    </table>
+
+</div>
+</td>
+<td>
+<div class="window">
+    <table class="tb ice norm">
+        <tbody>
+        <tr>
+        <th>#</th><th>Login</th><th>Тип</th><th>Номер</th>
+        </tr>
+        %%#table_users# onclick='edit_user(%id%);'%%
+        %table_users%
+        </tbody>
+    </table>
+    <div    id="ed_user" class="windowinfo wcenter w80" 
+            style="overflow:hidden;" 
+            hidden >
+    </div>
+
+</div>
+</td>
+</tr>
+</table>

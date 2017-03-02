@@ -1,0 +1,1418 @@
+
+<div id="phead" class="head window">
+        <table id="pstatus" class="wall small">
+         <tr class="black">
+           <td class="but vcenter" style="width:5%" onclick='nextmenu();' >&lt&lt</td>
+           <td class="but vcenter" style="width:5%" onclick='prevmenu();' >&gt&gt</td>
+           <td  class="lpadd vcenter"><span class='f70'>Смена</span><br><span class='f70 warn' id="f_opensm">0</span></td>
+           <td  class="lpadd vcenter"><span class='f70'>Выручка</span><br><span class='f70 ice' id="c_sum">0</span></td>
+           <td  class="lpadd vcenter"><span class='f70'>Налич</span><br><span class='f70 ice' id="sum_nal">0</span></td>
+           <td  class="lpadd vcenter"><span class='f70'>Безнал</span><br><span class='f70 ice' id="sum_bnal">0</span></td>
+           <td class="lpadd vcenter">
+           <input id="code" autofocus autocomplete="off" name="code" type=text class='itext black small'  style="padding:0px;" size=13 onKeyDown="keyr(event);" onclick="warning=true;"></input>
+           <span class="but" onclick='_add_code();'>Код</span>
+           <span class="but" onclick='reg("add_shcode");'>Штрихкод</span>
+           <span class="ice" id='temperature'></span>
+           </td>
+          <td class="but" onclick='_relocate("/");'>Выход</td>
+         </tr>
+        </table>
+</div>
+<table id="pcode" class="ml5 mr5 small" style="position:relative;height:85%;width:99%">
+  <tr>
+    <td id="pmenu" class="window" style="width:10%;min-width:80px">
+        <div class="scroll" style="height:100%">
+        <table id="pfunct" class="ml5" style="height:200px">
+        </table>
+        </div>
+    </td>
+    <td id="pcontent" class="window wall">
+        <div class="scroll" style="height:78%"> 
+        <table id="pcheck" class="tb mr5 small" style="width:98%">
+         <thead>
+         <tr class="flame">
+           <th >#</th>
+           <th>
+            <!--Продавец: !-->
+            <select class="vcenter itext small ice" onchange='_set(this,"seller");' id="seller" hidden>
+                <option value="0"></option>
+                %select_seller%
+            </select>
+            Чек:
+            <span class="lpadd vcenter bold" id="c_check">1</span>
+            <span class="lpadd vcenter warn" id="priz"></span>
+           </th>
+           <th >*</th>
+           <th >Цена</th>
+           <th >Кол</th>
+           <th >Сумма</th>
+           <th style="font-size:70%">Бонус</th>
+           <th style="font-size:70%">Скидка</th>
+         </tr>
+         </thead>
+         <tbody id="pcont">
+         </tbody>
+        </table>
+        </div>
+
+        <div  class="wall" style="height:6%;min-height:35px">
+         <table class="tb small flame" id="pitog" style="width:98%">
+          <tr>
+           <th class="flame small" id="plenpos">0</th>
+           <th class="flame small" id="ptypecheck">Продажа</th>
+           <th class="ice norm" id="psum">10000.00</th>
+           <th class="f70" ><span class='black' id='pdcardn'>Скидка</span><br>
+            <span class='flame' id='pdcard'></span>
+           </th>
+            <th id='pproc'></th>
+           <th class="warn small" id="pdisc"></th>
+           <th class="black small" >Итого</th>
+           <th class="ice norm" id="pitsum">0</th>
+          </tr> 
+          <tr id="pitog2">
+            <th id='preadonly' class='small warn'></th>
+            <th id='ptypebonus' class='small green'></th>
+            <th class='f70'>
+                <span class='black'>Остаток</span><br>
+                <span id='bonus_sum' class='ice'></span>
+            </th>
+            <th class="f70" >
+                <span class='black' id='pbcardn'>Бонус</span><br>
+                <span class='flame' id='pbcard'></span>
+            </th>
+            <th class='f70'>
+                <span id='pbproc' class='green'></span><br>
+                <span id='pbprocmax' class='warn'></span>
+            </th>
+            <th> <span id='bonus_discount' class='warn'></span> </th>
+            <th > <span id='bonus' class='green'></span> </th>
+
+            <th class="f70" >
+                <span class='black'>Итого по карте</span><br>
+                <span class='ice' id='itbcard'></span>
+            </th>
+          </tr> 
+         </table> 
+        </div>
+
+    </td>
+  </tr>
+</table>
+<input id="temp" value=0 type="hidden"/>
+
+<div id="pfoot" class="foot window">
+  <table class="small">
+    <tr>
+      <td class="vcenter lpadd green bold f70">#%regcode%:%idplace%.%nkassa%</td>
+      <td class="vcenter lpadd green bold f70">%info_user% </td>
+      <td class="vcenter lpadd green bold f70">%printer%</td>
+      <td id="presult" class="vcenter lpadd flame bold f70"></td>
+      <td id="perrors" class="vcenter lpadd warn bold f70"></td>
+    </tr>
+  </table>
+</div>
+        <div    id="popup" class="windowinfo center wcenter w80 norm"
+                style="overflow:hidden;height:80%" 
+                hidden >
+                <div id="popup_content"></div>
+                <button id='popup_btn' class='but norm marg ltext' onKeyDown="keypopup(event)" onclick='chsel();'>Выбрать</button>
+                <button class='but norm marg rtext' onclick='popup.hidden=true;popup_content.innerHTML="";code.focus();'>Закрыть</button>
+        </div>
+
+        <div    id="mess" class="windowinfo center wmcenter w60 h30 norm" 
+                style="overflow:hidden" 
+                hidden >
+                <div id="mess_content"></div>
+                <button id="mess_btn" class='but norm' onclick='mess.hidden=true;code.focus();' onKeyDown='messagekey(event);'>Закрыть</button>
+        </div>
+<script>
+    cursor=1;
+    lenmenu=3;
+    watch=false;
+    wait=false;
+    fullScreen=false;
+    //if (currule.value>=50) {
+        _status();
+        start();
+    //}
+    function alert_mess(head,content){
+      mess_content.innerHTML="<div class='infoline center'>"+head+"</div>"+"<div class='small'>"+content+"</div>";
+      mess.hidden=false;
+      mess_btn.focus();
+    }
+    function messagekey(e){
+        if (e.keyCode==27){
+           mess.hidden=true;code.focus(); 
+        }
+        if (e.keyCode==13){
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }
+    function prevmenu(){
+        --curmenu;
+        if (curmenu<1){
+            curmenu=lenmenu;
+        }
+        showmenu();
+    }
+    function nextmenu(){
+        ++curmenu;
+        if (curmenu>lenmenu){
+            curmenu=1;
+        }
+        showmenu();
+    }
+    function showmenu(){
+        pfunct.innerHTML=_getdata("/reg/menu?menu="+curmenu);
+        code.focus();
+    }
+    function start(){
+        curmenu=1;
+        showmenu();
+        result=_getdata("/reg/curcheck");
+        fillcheck(result);
+    }
+    function fillcheck(result){
+        warning=false;
+        tm0=0;
+        typesbonus={"0":"Начисление","1":"Списание"};
+        typescheck={"0":"Продажа","1":"Возврат"};
+        nposes=[0];
+        json=JSON.parse(result);
+        err="";
+        if (json["head"]["idsystem"]!="0"){
+            priz.innerHTML=" Призовой чек!";
+        }else{ priz.innerHTML=""; }
+        if (json['head']['ro']!="0"){
+            err=err+"R";
+        }
+        preadonly.innerHTML=err;
+        pdisc.innerHTML= parseFloat(json['head']['discount_sum']).toFixed(2);
+        pitsum.innerHTML=parseFloat(json['head']['itogo']).toFixed(2);
+        //(parseFloat(json['head']['summa'])-parseFloat(json['head']['discount_sum'])-parseFloat(json['head']['bonus_discount'])).toFixed(2);
+        if (json['head']['type']=="0"){
+            _bonus=parseFloat(json['head']['bonus']);
+            _bonus_discount=parseFloat(json['head']['bonus_discount']);
+        }
+        else{
+            _bonus=-parseFloat(json['head']['bonus']);
+            _bonus_discount=-parseFloat(json['head']['bonus_discount']);
+        }
+        itbcard.innerHTML=(parseFloat(json['head']['bonus_sum'])-parseFloat(_bonus_discount)+parseFloat(_bonus)).toFixed(2);
+        psum.innerHTML = parseFloat(json['head']['summa']).toFixed(2);
+        seller.value  = json['head']['seller'];
+        ptypecheck.innerHTML=typescheck[json['head']['type']];
+        if (json['head']['discount_card']!=""){
+            pdcard.innerHTML=json['head']['fio'];
+            pdcardn.innerHTML="Дисконтная карта №"+json['head']['discount_card'];
+            pproc.innerHTML= parseFloat(json['head']['discount_proc']*100).toFixed(2)+"%";
+        }else{
+            pdcardn.innerHTML="Скидка";
+            pdcard.innerHTML="";
+            pproc.innerHTML="";
+        }
+
+        if(json['head']['bonus_card']!=""){
+            pbproc.innerHTML= parseFloat(json['head']['bonus_proc']*100)+"%";
+            pbprocmax.innerHTML= parseFloat(json['head']['bonus_max']*100)+"%";
+            pbcard.innerHTML=json['head']['fio'];
+            pbcardn.innerHTML="Бонусная карта №"+json['head']['bonus_card'];
+            bonus_discount.innerHTML=parseFloat(json['head']['bonus_discount']).toFixed(2);
+            bonus.innerHTML=parseFloat(json['head']['bonus']).toFixed(2);
+            bonus_sum.innerHTML=parseFloat(json['head']['bonus_sum']).toFixed(2);
+            ptypebonus.innerHTML=typesbonus[json['head']['bonus_type']];
+            if (json['head']['bonus_type']=="0"){
+                ptypebonus.className='small green';
+            }else{
+                ptypebonus.className='small warn';
+            }
+        }else{
+            bonus.innerHTML="";
+            bonus_sum.innerHTML="";
+            pbcardn.innerHTML="Бонус";
+            pbcard.innerHTML="";
+            pbproc.innerHTML="";
+            pbprocmax.innerHTML="";
+            bonus_discount.innerHTML="";
+            bonus.innerHTML="";
+            ptypebonus.innerHTML="";
+        }
+        if (json['head']['type']=="0"){
+            bonus.className="norm green";
+            ptypecheck.className="norm green";
+            psum.className="norm ice";
+            pitsum.className="norm ice";
+        }else{
+            bonus.className="norm warn";
+            psum.className="norm warn";
+            pitsum.className="norm warn";
+            ptypecheck.className="norm warn";
+        }
+        if (json['empty']=='True'){
+            rf();
+            return;
+            lenpos=0;
+        }
+        cont = json['cont'];
+        s="";
+        tr="";
+        cursor=json['head']['cursor'];
+        n=0;
+        for (var key in cont){
+            cur=cont[key]["id"];
+            s0="";s1="";
+            if (cont[key]["storno"]!=0){
+                td1="warn";
+                td2="warn";
+                td3="warn";
+                td4="warn";
+                td6="warn";
+            }else{
+                td1="black";
+                td2="ice";
+                td3="black";
+                td4="ice bold";
+                td6="warn";
+            }
+            if (cont[key]["paramf1"]==0){
+                td1="green";
+            }
+            if (cont[key]["discount_pos"]!=0){
+                td6="warn bold";
+            }
+            if (cont[key]["p_alco"]!=0){
+                td1="ice";
+            }
+            if (cont[key]["multiprice"]!=0){
+                s1="bold";
+            }
+            if (cur==cursor){
+                tr=tr+" tbs";
+            }else{
+                tr="";
+            }
+            n=parseInt(key,0)+1;
+            nn= cont[key]["id"];
+            if (cursor==nn){
+                cursor=n;
+            }
+            nposes.push(nn);
+            l="<tr id='pos_"+n+"' class='"+tr+"' onclick='setcursor("+n+");'><td class='flame bold'>"+n+
+            "</td><td class='"+td1+" "+s0+" "+s1+"'>"+
+            cont[key]["name"]+
+            "</td><td class='center green'>"+cont[key]["mark"]+"</td>"+
+            "</td><td class='rtext "+td2+"'>"+
+            parseFloat(cont[key]["paramf1"]).toFixed(2)+"</td><td class='rtext "+td3+"'>"+
+            parseFloat(cont[key]["paramf2"]).toFixed(3)+"</td><td class='rtext "+td4+"'>"+
+            parseFloat(cont[key]["paramf3"]).toFixed(2)+
+            "</td><td class='small rtext green'>"+parseFloat(cont[key]["bonus"]).toFixed(2)+
+            "</td><td class='small rtext "+td6+"'>"+(parseFloat(cont[key]["discount"])+parseFloat(cont[key]["bonus_discount"])).toFixed(2)+
+            "</td></tr>";
+           s=s+l;
+        }
+        rf();
+        lenpos = n;
+        plenpos.innerHTML=lenpos;
+        pcont.innerHTML=s;
+        scroll2cursor();
+    }
+    function scroll2popcursor(){
+        if (lenpoppos>0){
+        last=document.getElementById("poptr_"+popcursor);
+        last.scrollIntoView(false);}
+    }
+    function scroll2cursor(){
+        if (lenpos>0){
+        last=document.getElementById("pos_"+cursor);
+        last.scrollIntoView(false);}
+    }
+    function setcursor(c){
+        pos="pos_"+cursor;
+        e=document.getElementById(pos);
+        e.className="";
+        cursor=c;
+        pos="pos_"+cursor;
+        e=document.getElementById(pos);
+        e.className="tbs";
+        reg_setcursor();
+        scroll2cursor();
+    }
+    function _status(){
+        cmd_status();
+        cmd_prn_devstatus();
+    }
+    function cmd_prn_devstatus(){
+            result=_getdata("/cmd/prn_devstatus");
+            if ((result.substr(0,1)==":")||(result=="0")){
+                    _result(result);
+                    perrors.innerHTML="";
+                    return;
+            }else{
+                json=JSON.parse(result);
+                warnflags(json);
+            }
+    }
+    function cmd_status(){
+            result=_getdata("/cmd/status");
+            if (result.substr(0,1)==":"){
+                    _result(result);
+                    return;
+            }else{
+                json=JSON.parse(result);
+                if (json["f_opensm"]=="True"){
+                    f_opensm.innerHTML="Открыта";
+                }else{
+                    f_opensm.innerHTML="Закрыта";
+                }
+
+
+                c_check.innerHTML="№"+json["c_check"]
+                if (json["c_sum"]!=undefined){
+                    c_sum.innerHTML=parseFloat(json["c_sum"]).toFixed(2);
+                }
+                if (json["sum_nal"]!=undefined){
+                    sum_nal.innerHTML=parseFloat(json["sum_nal"]).toFixed(2);
+                }
+                if (json["sum_bnal"]!=undefined){
+                    sum_bnal.innerHTML=parseFloat(json["sum_bnal"]).toFixed(2);
+                }
+                if (json["temperature"]!=undefined){
+                    temperature.innerHTML=parseInt(parseFloat(json["temperature"])*100)+"&deg";
+                }
+                c_check.innerHTML="№"+json["c_check"]
+            }
+    }
+    function warnflags(f){
+        fd = { 'f_ispaper'      :['False', 'Нет рулона'],
+               'fc_notpaper'    :['True', 'Нет бумаги'], 
+               'fc_nocut'       :['True', 'Ошибка отрезчика'], 
+               'fc_hot'         :['True', 'Перегрев'], 
+               'fc_bracked'     :['True', 'Сломан'], 
+               'f_opencap'      :['True', 'Открыта крышка'], 
+               'f_easypower'    :['True', 'Слабое напряжение'], 
+               'dev_mode'       :["4", 'Смена закрыта'], 
+        };
+        s="";
+        for (var p in fd) {
+            if (fd[p][0]==f[p]){
+                s+=fd[p][1]+"; ";
+            }
+        }
+        //if (s!=""){
+            perrors.innerHTML=s;
+        //}
+
+    }
+    function _result(r){
+        presult.innerHTML=r;
+        wait=false;
+    }
+    function _add_code(){
+        if (code.value==""){
+           selspravprice(".");   
+        }else{
+            reg("add_code");
+        }
+    }
+    function recalc_pay(){
+        vsego=parseFloat(ptd_vsego.innerHTML);
+        if (ptd_nal.value==''){ ptd_nal.value='0';}
+        if (ptd_bnal.value==''){ ptd_bnal.value='0';}
+        ptd_nal.value=ptd_nal.value.replace(",",".");
+        ptd_nal.select();
+        ptd_bnal.value=ptd_bnal.value.replace(",",".");
+        nal=parseFloat(ptd_nal.value);
+        bnal=parseFloat(ptd_bnal.value);
+        sdacha=nal-(vsego-bnal);
+        ptd_sdacha.innerHTML=sdacha.toFixed(2);
+        //ptd_sdacha.reflow();
+    }
+    function pay(){
+        popup_btn.focus();
+        recalc_pay();
+        sdacha=parseFloat(ptd_sdacha.innerHTML);
+        //alert(sdacha);
+        if (sdacha<0){
+            _result("Сумма наличности меньше оплачиваемой");
+            return;
+        }
+        nal=parseFloat(ptd_nal.value);
+        bnal=parseFloat(ptd_bnal.value);
+        _result("Оплата");
+        r=_postdata("/reg/pay",["nal","bnal"],[nal,bnal]);
+        r=JSON.parse(r);
+        error=r['error'];
+        sdacha=r['sdacha'];
+        prize=r['prize'];
+        popup.hidden=true;
+        if ((error.substr(0,1)==":")||(parseFloat(error)<0)){
+            if (error=="-1"){
+                alert_mess("Неверная сумма наличности",parseFloat(r).toFixed(2));
+                return;
+            }
+            if (error=="-2"){
+                alert_mess("Ошибка отправки чека в ЕГАИС","Проверьте работоспособность ЭЦП и УТМ");
+                return;
+            }
+            alert_mess("Ошибка оплаты",error);
+            _status();
+            return;
+        }
+        sdacha=parseFloat(sdacha).toFixed(2);
+        _result("Оплачено, сдача: "+sdacha);
+        reg_refresh();
+        if (prize!=""){
+            alert_mess("Выигрыш в чеке","Последний оплаченный чек выигрышный!<br>Сообщите покупателю об этом.<br>"+prize);
+        }
+        _status();
+    }
+    function otX(){
+        seltype="otX";
+        _result("Снятие X отчета");
+        r=_getdata("/reg/otX");
+        json=JSON.parse(r);
+        popup_btn.innerHTML="Напечатать";
+        popcursor=1;
+        ot("X-Отчет");
+        popup.hidden=false;
+        popup_btn.focus();
+    }
+    function otZ(){
+        seltype="otZ";
+        _result("Снятие Z отчета");
+        r=_getdata("/reg/otX");
+        json=JSON.parse(r);
+        popup_btn.innerHTML="Снять";
+        popcursor=1;
+        ot("Z-Отчет");
+        popup.hidden=false;
+        popup_btn.focus();
+    }
+    function do_otZ(){
+       r=_getdata("/reg/otZ");
+       if (r=="0"){
+        alert_mess("Ошибка снятия отчета","Невозможно снять отчет");
+        return;
+       }
+       popup.hidden=true;
+       rf();
+       _status();
+       _result("Снят Z-отчет номер "+r);
+    }
+    function openbox(){
+       r=_getdata("/cmd/prn/openbox");
+       if (r=="0"){
+        _result("Ошибка открытия ящика");
+        return;
+       }
+       popup.hidden=true;
+       rf();
+       _result("Ящик открыт");
+    }
+    function opensmena(){
+        if(confirm("Открыть смену?")){
+            r=_getdata("/cmd/prn/opensmena");
+        }else{return;}
+        if (r=="0"){
+            _result("Ошибка открытия смены");
+            return;
+       }
+       popup.hidden=true;
+       rf();
+       _result("Смена открыта");
+       reg_refresh();
+    }
+    function fullscreen(){
+        if (fullScreen){
+            fullScreen=false;
+            _result("Выход из полноэкранного режима");
+            document.webkitCancelFullScreen();
+        }else{
+            fullScreen=true;
+            document.documentElement.webkitRequestFullScreen();
+            _result("На весь экран");
+        }
+        //document.documentElement.requestFullScreen();
+    }
+    function ot(n){
+        content="<tr><td class='ltext big'>Выручка:</td><td class='big ice'>"+parseFloat(json['vir']).toFixed(2)+"</td></tr>"+
+        "<tr><td class='ltext'>Наличными:</td><td class='rtext ice'>"+parseFloat(json['summa_nal']).toFixed(2)+"</td></tr>"+
+        "<tr><td class='ltext'>Безналичными:</td><td class='rtext ice'>"+parseFloat(json['summa_bnal']).toFixed(2)+"</td></tr>"+
+        "<tr><td class='ltext'>Возвраты:</td><td class='rtext flame'>"+(-parseFloat(json['summa_ret'])).toFixed(2)+"</td></tr>"+
+        "<tr><td class='ltext'>Скидки:</td><td class='rtext flame'>"+parseFloat(json['discount']).toFixed(2)+"</td></tr>"+
+        "<tr><td class='ltext'>Списания бонусов:</td><td class='rtext flame'>"+parseFloat(json['bonus_discount']).toFixed(2)+"</td></tr>"+
+        "<tr><td class='ltext'>Начисления бонусов</td><td class='rtext green'>"+parseFloat(json['bonus']).toFixed(2)+"</td></tr>";
+        popup_content.innerHTML="<div class='infoline center'>"+n+"</div>"+
+        "<div>"+
+        "<table class='tbm norm black' style='margin-left:20%;margin-top:2%'><tbody>"+
+        content+"</tbody</table>";
+    }
+    function selpaynal(t){
+
+        seltype="paynal";
+        it=pitsum.innerHTML;
+        if (code.value==""){
+         _nal=it;
+        }else{
+            _nal=code.value.replace(",",".");
+        }
+        if (t==0){
+            nal=_nal;
+            bnal=0;
+            n="Оплата наличностью";
+            _result("Оплата наличностью");
+        }else{
+            nal=0;
+            bnal=it;
+            n="Оплата безналом";
+            _result("Оплата безналом");
+        }
+        popup_btn.innerHTML="Оплатить";
+        popcursor=1;
+        content=
+        "<tr><td class='ltext big'>Всего:</td><td id='ptd_vsego' class='big ice'>"+it+"</td></tr>"+
+        "<tr><td class='ltext'>Наличность:</td><td><input onKeyDown='keyrpay(this,event);' onchange='recalc_pay();' id='ptd_nal' class='norm ice itext' type='text' size=8 value='"+nal+"'/></td></tr>"+
+        "<tr><td class='ltext'>Безнал:</td><td><input onKeyDown='keyrpay(this,event);' onchange='recalc_pay();' id='ptd_bnal' class='norm flame itext' type='text' size=8 value='"+bnal+"'/></td></tr>"+
+        "<tr><td class='ltext'>Сдача:</td><td id='ptd_sdacha' >0.00</td></tr>";
+
+        popup_content.innerHTML="<div class='infoline center'>"+n+"</div>"+
+        "<div>"+
+        "<table class='tbm norm black' style='margin:2% 30% 5% 30%'><tbody>"+
+        content+"</tbody</table>"+
+        "<span class='small flame'>Отмена оплаты (ESC) Подтверждение (Insert)</span>"+"</div>";
+        popup.hidden=false;
+        ptd_nal.select();
+        ptd_nal.focus();
+        recalc_pay();
+        lenpoppos=1;
+    }
+    function selspravprice(parent){
+        seltype="sprav";
+        popcursor=1;
+        content="";
+        r=_getdata("/reg/getprice?parent="+parent);
+        if (r=="0"){
+            return;
+        }
+        popup_btn.innerHTML="Выбрать";
+        json=JSON.parse(r);
+        c=0;
+        for (var i in json){
+            c=c+1;
+            key=json[i];
+            if (popcursor==c){ cs="tbs";  }else{ cs=""; }
+            _code=key[0];
+            _name=key[2];
+            _istov=key[16];
+            _cena=parseFloat(key[4]).toFixed(2);
+            _ost=parseFloat(key[5]).toFixed(2);
+            if (_istov==1){ ls="ice";  }else{  ls="flame";  }
+            on="chsel();";
+            ln="<tr ondblclick='"+on+"' onclick='setpopcursor("+c+");' class='"+cs+"' id='poptr_"+c+"'>"+
+            "<td class='"+ls+"' id='poptd_"+c+"'>"+_code+"</td>"+
+            "<td class='"+ls+"'>"+_name+"</td>"+
+            "<td class='rtext'>"+_cena+"</td>"+
+            "<td class='rtext'>"+_ost+"</td></tr>";
+            content+=ln;
+        }
+        popup_content.innerHTML="<div class='infoline center'>Выбор номенклатуры</div>"+
+        "<div class='scroll' style='position:relative;height:80%'>"+
+        "<table class='tbm small black' style='margin-left:2%;width:95%'><tbody>"+
+        "<tr>"+
+        "<td onclick='selspravprice(0);'>\\</td>"+
+        "<td onclick='selspravprice(\"..\");'>..</td>"+
+        "</tr>"+
+        content+"</tbody</table></div>";
+        popup.hidden=false;
+        popup_btn.focus();
+        lenpoppos=c;
+        _result("Выбор номенклатуры");
+    }
+    function chtypebonus(){
+        if (ptypebonus.innerHTML=="Начисление"){
+            v=1;
+        }else{
+            v=0;
+        }
+        r=_postdata("/reg/set",["field","value"],["bonus_type",v]);
+        reg_refresh();
+    }
+    function chtype(){
+        if (ptypecheck.innerHTML=="Продажа"){
+            v=1;
+        }else{
+            v=0;
+        }
+        temp.value=v;
+        if (_set(temp,"type")!=false){
+            reg_refresh();}
+    }
+    function rf(){
+        code.value="";
+        code.focus();
+        warning=false;
+        tm0=0;
+        wait=false;
+    }
+    function setpopcolumn(c,l){
+        pos="poptd_"+popcursor+"_"+popcolumn;
+        e=document.getElementById(pos);
+        e.className="";
+        popcursor=c;
+        popcolumn=l;
+        pos="poptd_"+popcursor+"_"+popcolumn;
+        e=document.getElementById(pos);
+        e.className="tbs";
+        popup_btn.focus();
+        //reg_setcursor();
+    }
+    function setpopcursor(c){
+        if (c<1){
+            c=1;
+        }
+        if (c>lenpoppos){
+            c=lenpoppos;
+        }
+        pos="poptr_"+popcursor;
+        e=document.getElementById(pos);
+        e.className="";
+        popcursor=c;
+        pos="poptr_"+popcursor;
+        e=document.getElementById(pos);
+        e.className="tbs";
+        popup_btn.focus();
+        scroll2popcursor();
+    }
+    function chsel(){
+        if (seltype=='zakaz'){
+            pos="poptd_"+popcursor;e=document.getElementById(pos);id=e.innerHTML;
+            _getdata("/icerest/zakaz/block?id="+id);
+            popup.hidden=true;
+            rf();
+            reg_refresh();
+        }
+        if (seltype=='sprav'){
+            chselsprav();
+        }
+        if (seltype=='price'){
+            chselprice();
+        }
+        if (seltype=='paynal'){
+            pay();
+        }
+        if (seltype=='otX'){
+            _getdata("/reg/otX?print=1");
+            popup.hidden=true;
+            rf();
+        }
+        if (seltype=='otZ'){
+            popup.hidden=true;
+            do_otZ();
+        }
+        if (seltype=='check'){
+            chselcheck();
+        }
+        
+        if (seltype=='count'){
+            pos="poptd_"+popcursor+"_"+popcolumn;
+            e=document.getElementById(pos);
+            code.value=e.innerHTML;
+            chcount();
+        }
+    }
+    function chselsprav(){
+        popup.hidden=true;
+        pos="poptd_"+popcursor;
+        e=document.getElementById(pos);
+        val=e.innerHTML;
+
+        if (e.className=='flame'){
+            selspravprice(val);
+            return;
+        }
+        if (e.className=='ice'){
+            code.value=val;
+            _add_code();
+        }
+    }
+    function chselcheck(){
+        popup.hidden=true;
+        pos="poptd_"+popcursor;
+        e=document.getElementById(pos);
+        val=e.innerHTML;
+        a=val.split("_")
+        r=_postdata("/reg/loadcheck",["iduser","id"],[a[0],a[1]]);
+        if (r=="0"){
+            _result("Невозможно загрузить чек");
+            return;
+        }
+        _result("Загружен отложенный чек");
+        reg_refresh();
+    }
+    function chselprice(){
+        popup.hidden=true;
+        pos="poptd_"+popcursor;
+        e=document.getElementById(pos);
+        val=e.innerHTML;
+        r=_postdata("/reg/setprice",["idpos","cena"],[nposes[cursor],val]);
+        if (r=="0"){
+            _result("Невозможно установить цену");
+            return;
+        }
+        _result("Выбрана новая цена");
+        reg_refresh();
+    }
+    function copycheck(){
+        if (code.value!=""){  _get="?id="+code.value;  } else { _get=""; }
+        r=_getdata("/check/copy"+_get);
+       if (r=="0"){
+        _result("Невозможно сделать копию чека");
+        return;
+       }else{
+        _result("Копия последнего чека");
+        rf();
+       }
+    }
+    function delcards(){
+        r=_postdata("/reg/set",["field","value"],["bonus_card","null"]);
+        r=_postdata("/reg/set",["field","value"],["discount_card","null"]);
+        reg_refresh();
+    }
+
+    function selcount(){
+        seltype="count";
+        popcursor=1;
+        popcolumn=1;
+        content="";
+        popup_btn.innerHTML="Выбрать";
+        if (cont[cursor-1]["p_real"]=="1"){
+            delta=0.5;
+        }else{
+            delta=1;
+        }
+        c=0;
+        while (c<=5){
+          c=c+1;
+          line="";
+          for (l=1;l<=6;l++){
+            k=(c-1)*6+l*delta;
+            if ((popcursor==c)&&(popcolumn==l)){ cs="tbs";  }else{ cs=""; }
+            ln="<td onclick='setpopcolumn("+c+","+l+");' class='"+cs+"' id='poptd_"+c+"_"+l+"'>"+k.toFixed(3)+"</td>";
+            line+=ln;
+          }
+
+          content+="<tr id='poptr_"+c+"'>"+line+"</tr>";
+        }
+        popup_content.innerHTML="<div class='infoline center'>Выбор количества</div>"+
+        "<div class='scroll' style='position:relative;height:70%'><table class='tbm small black rtext' style='margin-left:5%;margin-top:2%;width:90%'><tbody>"+content+"</tbody</table></div>";
+        popup.hidden=false;
+        popup_btn.focus();
+        lenpoppos=c;
+        _result("Выбор количества");
+    }
+    function selprice(){
+        seltype="price";
+        r=_postdata("/reg/selprice",["idpos"],[nposes[cursor]]);
+        if (r=="0"){
+            _result("Списка цен нет");
+            return;
+        }
+        popup_btn.innerHTML="Выбрать";
+        json=JSON.parse(r);
+        content="";
+        popcursor=1;
+        c=0;
+        for (var key in json){
+          c=c+1;
+          if (c==popcursor){
+            cs="tbs";
+          }else{
+            cs="";
+          }
+          content+="<tr onclick='setpopcursor("+c+");' id='poptr_"+c+"' class='tbm "+cs+
+          "'><td class='flame bold rtext' id='poptd_"+c+"'>"+json[key][3].toFixed(2)+"</td><td>"+json[key][2]+"</td></tr>";
+        }
+
+        popup_content.innerHTML="<div class='infoline center'>Выбор цены</div>"+"<div class='scroll' style='position:relative;height:70%'>"+
+        "<table id='popup_tb' class='small black tbm' style='margin-left:5%;margin-top:2%;width:90%'><tbody>"+content+"</tbody</table></div>";
+        popup.hidden=false;
+        popup_btn.focus();
+        lenpoppos=c;
+        _result("Выбор цены");
+    }
+    function chskid(){
+        if (cont[cursor-1]["p_max_skid"]!='0'){
+            r=_postdata("/reg/chskid",["idpos","proc"],[cursor,code.value]);
+            rf();
+            if (r=="0"){
+                _result("Скидка невозможна");
+                return;
+            }
+            _result("Процентная скидка");
+            reg_refresh();
+            popup.hidden=true;
+        }else{
+            rf();
+            _result("Скидка невозможна");
+            
+        }
+    }
+    function chprice(){
+        if ((cont[cursor-1]["multiprice"]=='1')&&(code.value=="")){
+            selprice();
+            return;
+        }
+        r=_postdata("/reg/chprice",["idpos","price"],[nposes[cursor],code.value]);
+        rf();
+        if (r=="0"){
+            _result("Изменение цены невозможно");
+            return;
+        }
+        _result("Изменение цены");
+        reg_refresh();
+        popup.hidden=true;
+    }
+    function chsumbonus(){
+        if (bonus_sum.innerHTML==""){
+            return;
+        }
+        if (code.value==""){
+            v=prompt("Введите сумму списания",bonus_sum.innerHTML);
+            if (v==null){
+                return;
+            }
+        }else{
+            v=code.value;
+        }
+        r=_postdata("/reg/set",["field","value"],["bonus_discount",v]);
+        reg_refresh();
+    }
+    function chcount(){
+        if (code.value==""){
+            selcount();
+            return;
+        }
+        r=_postdata("/reg/chcount",["idpos","count"],[nposes[cursor],code.value]);
+        rf();
+        if (r=="0"){
+            _result("Изменение количества невозможно");
+            return;
+        }
+        _result("Изменение количества");
+        reg_refresh();
+        popup.hidden=true;
+    }
+    function printshk(){
+        rf();
+        r=_postdata("/reg/printshk",["idpos"],[nposes[cursor]]);
+        if (r=="0"){
+            return;
+        }
+        _result("Печать штрихкода");
+        reg_refresh();
+    }
+    function storno(){
+        rf();
+        r=_postdata("/reg/storno",["idpos"],[nposes[cursor]]);
+        if (r=="0"){
+            return;
+        }
+        _result("Сторно");
+        reg_refresh();
+    }
+    function _set(t,f){
+        c=t.value;
+        rf();
+        r=_postdata("/reg/set",["field","value"],[f,c]);
+        if (r=="0"){
+            text="Не возможно установить значение ["+c+"]";
+            _result(text);
+            alert_mess("Ошибка",text);
+            return false;
+        }
+        if (f=='seller'){
+            text="Установлен продавец"
+        }
+        if (f=='type'){
+            text="Смена типа чека"
+        }
+        if (f=='bonus_type'){
+            text="Смена типа бонусной операции"
+        }
+        _result(text);
+    }
+    function reg_setcursor(){
+        pos="pos_"+nposes[cursor];
+        _postdata("/reg/set",["field","value"],["cursor",nposes[cursor]]);
+        rf();
+    }
+    function reg_refresh(){
+        r=_getdata("/reg/curcheck");
+        rf();
+        fillcheck(r);
+    }
+    function reg(url){
+        if (url=='cancel'){
+            if(confirm("Отменить чек?")){
+                
+            }else{
+                rf();
+                return;
+            }
+        }
+        c=code.value;
+        r=_postdata("/reg/"+url,["code","warning"],[c,warning]);
+        if (r=="0"){
+            text="Не найден товар по коду ["+c+"]";
+            code.value="";
+            alert_mess("Ошибка",text);
+            warning=false;
+            tm0=0;
+            _result(text);
+            return;
+        }
+        if (r=="-3"){
+            _result("Торговля алкоголем разрешена только с 10:00 до 22:00");
+            return;
+        }
+        if (r=="-1"){
+            _result("Алкогольная продукция");
+            rf();
+            barcode=prompt("Сканируйте код PDF417");
+            for (i=0;i<barcode.length;i++){
+             if ((barcode.charCodeAt(i)>=1040)&&(barcode.charCodeAt(i)<=1105)){
+                _result("В коде не должно быть русских символов!");
+                return;
+             }
+            }
+            if (barcode.length!=68){
+                _result("Не верный код");
+                return;
+            }
+            r=_postdata("/reg/"+url,["code","warning","barcode"],[c,warning,barcode]);
+            if (r=="-2"){
+                _result("Такой товар уже зарегистрирован в чеке");
+                return;
+            }
+            _result("Добавлена алкогольная продукция");
+            reg_refresh();
+            return;
+        }
+        _result(r);
+        reg_refresh();
+    }
+    function savecheck(){
+        rs=_postdata("/reg/savecheck",["save"],["1"]);
+        if (r=="0"){
+            _result("Невозможно сохранить чек");
+            return;
+        }
+        reg_refresh();
+        _result("Чек сохранен под номером "+rs);
+        alert_mess("Чек сохранен","Ваш текущий чек сохранен как отложенный №"+rs);
+    }
+    function loadchecks(){
+        r=_postdata("/reg/loadchecks",["load"],["1"]);
+        //alert(r);
+        if (r=="0"){
+            _result("Нет отложенных чеков");
+            return;
+        }
+        if (lenpos>0){
+           if (confirm("Вы хотите сохранить этот чек перед загрузкой другого?")){
+            savecheck();
+            return;
+           }
+        }
+        _result("Выбор отложенного чека");
+        seltype="check";
+        popcursor=1;
+        content="";
+        json=JSON.parse(r);
+        c=0;
+        for (var i in json){
+            c=c+1;
+            key=json[i];
+            if (popcursor==c){ cs="tbs";  }else{ cs=""; }
+            _code=key[0]+"_"+key[1];
+            _puttime=key[2];
+            _type=key[3];
+            _bon=key[17];
+            _user=key[19];
+            _disc=parseFloat(key[9]+_bon).toFixed(2);
+            _sum=parseFloat(key[7]-_disc).toFixed(2);
+            on="chsel();";
+            ln="<tr ondblclick='"+on+"' onclick='setpopcursor("+c+");' class='"+cs+"' id='poptr_"+c+"'>"+
+            "<td  id='poptd_"+c+"'>"+_code+"</td>"+
+            "<td>"+_puttime+"</td>"+
+            "<td class='ice'>"+_user+"</td>"+
+            "<td class='rtext'>"+typescheck[_type]+"</td>"+
+            "<td class='rtext'>"+_sum+"</td>"+
+            "<td class='rtext'>"+_disc+"</td>"+
+            "</tr>";
+            content+=ln;
+        }
+        popup_content.innerHTML="<div class='infoline center'>Выбор отложенного чека</div>"+
+        "<div class='scroll' style='position:relative;height:80%'>"+
+        "<table class='tbm small black' style='margin-left:2%;width:95%'>"+
+        "<th>#</th>"+
+        "<th>Время</th>"+
+        "<th>Владелец</th>"+
+        "<th>Тип</th>"+
+        "<th>Сумма</th>"+
+        "<th>Скидка</th>"+
+        "<tbody>"+
+        content+"</tbody</table></div>";
+        popup.hidden=false;
+        popup_btn.focus();
+        lenpoppos=c;
+    }
+    function zakaz_delete(){
+        r=_getdata("/icerest/zakaz/unblock");
+        reg_refresh();
+    }
+    function zakaz_list(){
+        r=_getdata("/icerest/zakaz/list");
+        _result("Загрузка заказов");
+        seltype="zakaz";
+        popcursor=1;
+        content="";
+        json=JSON.parse(r);
+        c=0;
+        for (var i in json){
+            d=json[i];
+            boxes=d['boxes'];
+            bx="";
+            for (b in boxes){ bx=bx+boxes[b]['id']+" "; }
+            if ((d['status']>2)||(d['status']<1)){continue;}
+            c=c+1;
+            if (popcursor==c){ cs="tbs";  }else{ cs=""; }
+            on="chsel();";
+            cs2='';
+            if (d['status']==1){ st='Не готов'; }
+            if (d['status']==2){ st='Готов'; cs2="ice";   }
+            ln="<tr ondblclick='"+on+"' onclick='setpopcursor("+c+");' class='"+cs+"' id='poptr_"+c+"'>"+
+            "<td  class='bold center' id='poptd_"+c+"'>"+d['id']+"</td>"+
+            "<td class='"+cs2+"'>"+st+"</td>"+
+            "<td class='warn'>"+bx+"</td>"+
+            "<td>"+d['dt']+"</td>"+
+            "<td>"+d['tm']+"</td>"+
+            "</tr>";
+            content+=ln;
+        }
+        popup_content.innerHTML="<div class='infoline center'>Выбор заказа</div>"+
+        "<div class='scroll' style='position:relative;height:80%'>"+
+        "<table class='tbm small black' style='margin-left:2%;width:95%'>"+
+        "<tr><th>#</th>"+
+        "<th>Статус</th>"+
+        "<th>Корзины</th>"+
+        "<th>Дата</th>"+
+        "<th>Время</th></tr>"+
+        "<tbody>"+
+        content+"</tbody</table></div>";
+        popup.hidden=false;
+        popup_btn.innerHTML='Загрузить';
+        popup_btn.focus();
+        lenpoppos=c;
+    }
+
+    function keyr(e)
+    {
+        var key = e.keyCode;
+        wait=false;
+        if (tm0==0){
+            tm = new Date();
+            tm.getTime();
+            tm0=tm;
+        }
+        if (key==17){
+            warning=true;
+        }
+        //alert(key);
+        if (key==13){
+            tm = new Date();
+            tm.getTime();
+            r=tm-tm0;
+            if ((r>1000)||(r==0)) {
+               warning=true;
+               tm0=tm;
+             }
+        }
+
+        var keys = { 
+                     9 : true,
+                     13 : true,
+                     38 : true,
+                     40 : true,
+                     45 : true, 
+                     46 : true, 
+                     33 : true,
+                     34 : true, 
+                     35 : true, 
+                     36 : true,
+                     37 : true,
+                     39 : true,
+                     68 : true, 
+                     70 : true, 
+                     87 : true, 
+                     106: true,
+                     107: true,
+                     109: true,
+                     111: true,
+                     112: true,
+                     113: true,
+                     114: true,
+                     115: true,
+                     116: true,
+                     117: true,
+                     120: true,
+                     121: true,
+                     122: true,
+                     118: true,
+                     119: true,
+                     123: true, 
+                     219: true, 
+                     221: true, 
+                     };
+        if (key in keys){
+            e.preventDefault();
+            e.stopPropagation();
+            keyread(key);
+        }
+    }
+    function keyrpay(t,e){
+        var key = e.keyCode;
+        //alert(key);
+        cur_id=t.id;
+        if ((key==40)||(key==38)||(key==9)){
+            e.preventDefault();
+            e.stopPropagation();
+            if (cur_id=='ptd_nal'){
+                id=document.getElementById('ptd_bnal');
+            }else{
+                id=document.getElementById('ptd_nal');
+            }
+            id.focus();
+            id.select();
+        }
+        if (key==27){
+            popup.hidden=true;popup_content.innerHTML="";code.focus(); 
+            return;
+        }
+        if ((key==45)||(key==13)||(key==46)){
+            pay();
+            return;
+        }
+    }
+    function keypopup(e){
+        var key = e.keyCode;
+            e.preventDefault();
+            e.stopPropagation();
+            wait=false;
+        //alert(key);
+        if (key==220){
+            if (seltype=="sprav"){ selspravprice(0); }
+            return;
+        }
+        if (key==8){
+            if (seltype=="sprav"){ selspravprice(".."); }
+            return;
+        }
+        if (seltype!="count"){
+            if (key==33){
+                setpopcursor(popcursor-10);
+            }
+            if (key==34){
+                setpopcursor(popcursor+10);
+            }
+        }
+        if (key==38){
+            if (seltype=="count"){
+                if (popcursor>1){ setpopcolumn(popcursor-1,popcolumn); }
+            }else{
+                if (popcursor>1){ setpopcursor(popcursor-1); }
+            }
+            return;
+        }
+        if (key==37){
+            if (seltype=="count"){
+                if (popcolumn>1){ setpopcolumn(popcursor,popcolumn-1); }
+            }
+            return;
+        }
+        if (key==39){
+            if (seltype=="count"){
+                if (popcolumn<6){ setpopcolumn(popcursor,popcolumn+1); }
+            }
+            return;
+        }
+        if (key==40){
+            if (seltype=="count"){
+                if (popcursor<lenpoppos){ setpopcolumn(popcursor+1,popcolumn); }
+            }else{
+                if (popcursor<lenpoppos){ setpopcursor(popcursor+1); }
+            }
+            return;
+        }
+        if (key==13){
+            chsel(); 
+            return;
+        }
+        if (key==27){
+            popup.hidden=true;popup_content.innerHTML="";code.focus(); 
+            return;
+        }
+    }
+    function keyread(key){
+        //alert(key);
+        if (key==68){
+            delcards();
+            return;
+        }
+        if (key==70){
+            fullscreen();
+            return;
+        }
+        if (key==87){
+            set_watch();
+            return;
+        }
+        if (key==87){
+            set_watch();
+            return;
+        }
+        if (key==219){
+            savecheck();
+            return;
+        }
+        if (key==221){
+            loadchecks();
+            return;
+        }
+        if (key==111){
+            reg("cancel");
+            return;
+        }
+        if (key==9){ //TAB
+            nextmenu();
+            return;
+        }
+        if (key==113){ //F2
+            copycheck();
+            return;
+        }
+        if (key==114){ //F3
+            rf();
+            return;
+        }
+        if (key==115){ //F4 Не занято
+            return;
+        }
+        if (key==116){ //F5
+            printshk();
+            return;
+        }
+        if (key==118){ //F7
+            chsumbonus();
+            return;
+        }
+        if (key==119){ //F8
+            chskid();
+            return;
+        }
+        if (key==120){ //F9
+            chtypebonus();
+            return;
+        }
+        if (key==121){ //F10 Не занято
+            return;
+        }
+        if (key==122){
+            otX();
+            return;
+        }
+        if (key==123){
+            otZ();
+            return;
+        }
+        if (key==106){
+            storno();
+            return;
+        }
+        if (key==107){
+            chcount();
+            return;
+        }
+        if (key==109){
+            chprice();
+            return;
+        }
+        if (key==13){
+            reg("add_shcode");
+            return;
+        }
+        if (key==33){
+            chtype();
+            return;
+        }
+        if (key==34){
+            openbox();
+            return;
+        }
+        if (key==36){
+            _add_code();
+            return;
+        }
+        if (key==37){
+            if (cursor>1){ setcursor(1); }
+            return;
+        }
+        if (key==38){
+            if (cursor>1){ 
+            setcursor(cursor-1); }
+            return;
+        }
+        if (key==39){
+            setcursor(lenpos);
+            return;
+        }
+        if (key==40){
+            if (cursor<lenpos){
+                setcursor(cursor+1);
+            }
+            return;
+        }
+        if (key==45){
+            selpaynal(0);
+            return;
+        }
+        if (key==46){
+            selpaynal(1);
+            return;
+        }
+    }
+    function set_watch(){
+       watch=!watch; 
+    }
+    setInterval(
+        function() {
+            if (!code.focused){
+                if ((popup.hidden)&&(mess.hidden)){
+                    code.focus(); 
+                }
+            }
+        }, 5000);
+    function refresh(){
+      if (watch){
+       if (wait){
+           reg_refresh(); 
+           _status();
+       }
+       if (!wait){
+            wait=true;
+       }
+     }
+    }
+    setInterval(function() {  refresh(); }, 2000);
+</script>

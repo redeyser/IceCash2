@@ -1,0 +1,323 @@
+<div class="window w33 padd marg">
+    <span class='flame big'>Чеки</span>
+    <table class="norm">
+        <tr class="ice sel" onclick='ot_cont.hidden=false;'><td>Фильтр</td></tr>
+        <tr class="ice bold sel" onclick='_relocate("/ot");'><td>Отчеты</td></tr>
+        <tr class="ice bold sel" onclick='_relocate("/");'><td>В начало</td></tr>
+    </table>
+
+</div>
+
+<div id="ot_cont" class="windowinfo center wmaxcenter w90 norm" hidden>
+    <div class=infoline> Фильтр чеков </div>
+    <div id=othead calss="small">
+        <table>
+        <tr>
+        <td>
+        <table class="small ice marg">
+            <tr class="f70">  <td> Дата начала     </td>  <td> <input id='dt1' size=8 type=text class='itext f70 black'/> </td>     </tr>
+            <tr class="f70">  <td> Дата окончания  </td>  <td> <input id='dt2' size=8 type=text class='itext f70 black'/> </td>     </tr>
+            <tr class="f70">  <td> Время &gt=      </td>  <td> <input id='tm1' size=6  type=text class='itext f70 black'/> </td>     </tr>
+            <tr class="f70">  <td> Время &lt=      </td>  <td> <input id='tm2' size=6  type=text class='itext f70 black'/> </td>     </tr>
+        </table>
+        </td>
+        <td>
+        <table class="small ice marg">
+            <tr class="f70">  <td> Номер чека     </td>  <td> <input id='ncheck' size=4 type=text class='f70 itext black'/> </td>     </tr>
+            <tr class="f70">  <td> Тип чека       </td>  
+                  <td> 
+                    <select id='tcheck' class='black itext f70'>
+                        <option value=''>Любые</option>
+                        <option value='0'>Продажи</option>
+                        <option value='1'>Возвраты</option>
+                    </select>
+                  </td>     
+            </tr>
+            <tr class="f70">  <td> Тип оплаты       </td>  
+                  <td> 
+                    <select id='tpay' class='black itext f70'>
+                        <option value=''>Любой</option>
+                        <option value='0'>Наличный</option>
+                        <option value='1'>Безналичный</option>
+                    </select>
+                  </td>     
+            </tr>
+            <tr class="f70">  <td> Тип записи       </td>  
+                  <td> 
+                    <select id='tclose' class='black itext f70'>
+                        <option value=''>Любой</option>
+                        <option value='1'>Оплата</option>
+                        <option value='0'>Отмена</option>
+                    </select>
+                  </td>     
+            </tr>
+        </table>
+        </td>
+        <td>
+        <table class="small ice marg">
+            <tr class="f70">  <td> Дисконтная карта   </td>  <td> <input id='dcard'  class='itext black' type=checkbox value="1"/> </td>     </tr>
+            <tr class="f70">  <td> Бонусная карта     </td>  <td> <input id='bcard'  class='itext black' type=checkbox value="1"/> </td>     </tr>
+            <tr class="f70">  <td> Не фискальный      </td>  <td> <input id='fiscal' class='itext black' type=checkbox value="1"/> </td>     </tr>
+            <tr class="f70">  <td> Ошибки             </td>  <td> <input id='error'  class='itext black' type=checkbox value="1"/> </td>     </tr>
+            <tr class="f70">  <td> Алкоголь           </td>  <td> <input id='alco'   class='itext black' type=checkbox value="1"/> </td>     </tr>
+        </table>
+        </td>
+        <td>
+        <table class="small ice marg">
+            <tr class="f70">  <td> Скидка &gt  </td>  <td> <input id='discount' size=6  type=text class='itext f70 black'/> </td>     </tr>
+            <tr class="f70">  <td> Бонус &gt   </td>  <td> <input id='bonus'    size=6  type=text class='itext f70 black'/> </td>     </tr>
+            <tr class="f70">  <td> Сумма &gt=   </td>  <td> <input id='summa'    size=6  type=text class='itext f70 black'/> </td>     </tr>
+            <tr class="f70">  <td> Код товара =   </td>  <td> <input id='code'   size=6  type=text class='itext f70 black'/> </td>     </tr>
+            <tr class="f70">  <td> Код группы =   </td>  <td> <input id='idgroup'   size=6  type=text class='itext f70 black'/> </td>     </tr>
+        </table>
+        </td>
+        </tr>
+        </table>
+    </div>
+    <button id="btn" class='but norm marg rtext' onclick='ot_cont.hidden=true;otcont.innerHTML="";'>Закрыть</button>
+    <button id="btn" class='but norm marg rtext' onclick='ot_cont.hidden=true;doch();'>Запрос</button>
+</div>
+<div id="ch_cont" class="windowinfo center wcenter w80 h80 norm" hidden>
+    <div id="chcont" class="norm scroll" >  </div>
+    <button id="btnzc" class='but norm marg rtext' onclick='ch_cont.hidden=true;chcont.innerHTML="";'>Закрыть</button>
+</div>
+<div id="tbcheck" class="windowinfo center wcenter w80 h80 norm" hidden>
+    <div id="ctcheck" class="norm scroll" >  </div>
+    <button id="btnzc" class='but norm marg rtext' onclick='tbcheck.hidden=true;ctcheck.innerHTML="";'>Закрыть</button>
+    <button id="btn" class='but norm marg rtext' onclick='copycheck();'>Копия чека</button>
+    <button id="btn" class='but norm marg rtext' onclick='returncheck();'>Возврат чека</button>
+</div>
+
+<script>
+    cdt= new Date();
+    dt1.value = cdt.getFullYear()+"-"+(cdt.getMonth()+1)+"-"+cdt.getDate();
+    dt2.value = cdt.getFullYear()+"-"+(cdt.getMonth()+1)+"-"+cdt.getDate();
+    function doch(t){
+       e="";
+       _dt1="";_dt2="";_tm1="";_tm2="";
+       _ncheck="";_tcheck="";_tpay="";_tclose="";
+       _dcard="";_bcard="";_fiscal="";_error="";_alco="";
+       _discount="";_bonus="";_code="";_summa="";_code="";_idgroup="";
+       if (dt1.value!=""){
+            _dt1=e+"dt1="+dt1.value;
+            e="&";
+       }
+       if (dt2.value!=""){
+            _dt2=e+"dt2="+dt2.value;
+            e="&";
+       }
+       if (tm1.value!=""){
+            _tm1=e+"tm1="+tm1.value;
+            e="&";
+       }
+       if (tm2.value!=""){
+            _tm2=e+"tm2="+tm2.value;
+            e="&";
+       }
+       if (ncheck.value!=""){
+            _ncheck=e+"ncheck="+ncheck.value;
+            e="&";
+       }
+       if (tcheck.value!=""){
+            _tcheck=e+"tcheck="+tcheck.value;
+            e="&";
+       }
+       if (tpay.value!=""){
+            _tpay=e+"tpay="+tpay.value;
+            e="&";
+       }
+       if (tclose.value!=""){
+            _tclose=e+"tclose="+tclose.value;
+            e="&";
+       }
+       if (dcard.checked){
+            _dcard=e+"dcard=1";
+            e="&";
+       }
+       if (bcard.checked){
+            _bcard=e+"bcard=1";
+            e="&";
+       }
+       if (fiscal.checked){
+            _fiscal=e+"fiscal=0";
+            e="&";
+       }
+       if (error.checked){
+            _error=e+"error=1";
+            e="&";
+       }
+       if (alco.checked){
+            _alco=e+"alco=1";
+            e="&";
+       }
+       if (discount.value!=""){
+            _discount=e+"discount="+discount.value;
+            e="&";
+       }
+       if (bonus.value!=""){
+            _bonus=e+"bonus=" + bonus.value;
+            e="&";
+       }
+       if (summa.value!=""){
+            _summa=e+"summa=" + summa.value;
+            e="&";
+       }
+       if (code.value!=""){
+            _code=e+"code=" + code.value;
+            e="&";
+       }
+       if (idgroup.value!=""){
+            _idgroup=e+"idgroup=" + idgroup.value;
+            e="&";
+       }
+       q=_dt1+_dt2+_tm1+_tm2+_ncheck+_tcheck+_tpay+_tclose+_dcard+_bcard+_fiscal+_error+_discount+_bonus+_summa+_alco+_code+_idgroup;
+       data=_getdata("/ot/check?"+q);
+       showcont(data);
+    }
+
+    function th(s){
+        return "<th class='f70'>"+s+"</th>";
+    }
+    function td(_id,_class,_on,_c,asfloat){
+        if (asfloat){
+            _c=parseFloat(_c).toFixed(2);
+        }
+        return "<td id='"+_id+"' class='"+_class+"' "+_on+" >"+_c+"</td>";
+    }
+    function ft(s,cl){
+        return "<th class='f70 rtext "+cl+"'>"+s+"</th>";
+    }
+    function copycheck(){
+        data = _getdata("/check/copy?id="+current_check);
+    }
+    function returncheck(){
+        data = _getdata("/check/return?id="+current_check);
+        if (confirm("Чек перенесен в регистрацию продаж. Перейти к нему сейчас?")){
+            _relocate("/reg");
+        }
+    }
+    function getcheck(id){
+        data = _getdata("/ot/check?id="+id);
+        json=JSON.parse(data);
+        hd=json['hd'];
+        ct=json['ct'];
+        current_check=hd['id'];
+
+        content="";
+        arr=["id","name","paramf1","paramf2","paramf3","discount","bonus_discount","bonus"];
+        fl= [0,0,1,1,1,1,1,1];
+        cls=["bold flame","black","ice rtext","ice rtext","ice rtext","warn rtext","warn rtext","green rtext"];
+        for (var l in ct){
+            d=ct[l];
+            idd=d['id'];
+            ln="";
+            for (var i in arr){
+                if (fl[i]==1){
+                    f=2;
+                    v=parseFloat(d[arr[i]]).toFixed(f);
+                    if (d["storno"]!="1"){
+                        it[i]=it[i]+parseFloat(d[arr[i]]);
+                    }
+                }else{
+                    v=d[arr[i]];
+                }
+                cl=cls[i];
+                if ((arr[i]=="name")&&(d["storno"]=="1")){
+                    cl="warn";
+                }
+                ln+=td("",cl,"",v);
+            }
+            line="<tr class='f70 sel'>"+ln+"</tr>";
+            content+=line;
+        }
+        sum=(parseFloat(hd['summa'])-parseFloat(hd['discount_sum'])-parseFloat(hd['bonus_discount'])).toFixed(2);
+        line="<td class='bold' colspan=2>Итого</td>";
+        line+="<td colspan=2 class='bold rtext'>"+sum+"</td>";
+        line+=td("","ice rtext","",hd['summa'],true);
+        line+=td("","warn rtext","",hd['discount_sum'],true);
+        line+=td("","warn rtext","",hd['bonus_discount'],true);
+        line+=td("","green rtext","",hd['bonus'],true);
+        content+=line;
+        _th="<tr>"+th("#")+th("Товар")+th("Цена")+th("Кол")+th("Сумма")+th("Скидка")+th("Бонус-")+th("Бонус+")+"</tr>";
+        _ft="";
+        c="<div class='infoline center'>Просмотр чека</div>"+
+        "<div class='scroll' style='position:relative;height:75%'>"+
+        "<table class='tbm small black' style='margin-left:2%;width:95%'>"+_th+"<tbody>"+content+
+        "<tr><td colspan=6>Дисконтная карта:</td><td colspan=2>"+hd['discount_card']+"</td></tr>"+
+        "<tr><td colspan=6>Бонусная карта:</td><td colspan=2>"+hd['bonus_card']+"</td></tr>"+
+        "<tr><td colspan=6>Оплата наличными:</td><td colspan=2>"+hd['pay_nal']+"</td></tr>"+
+        "<tr><td colspan=6>Оплата безналичными:</td><td colspan=2>"+hd['pay_bnal']+"</td></tr>"+
+        "</tbody"+_ft+"</table>"+
+        "</div>";
+        ctcheck.innerHTML=c;
+        tbcheck.hidden=false;
+    }
+    function showcont(d){
+        json=JSON.parse(data);
+        content="";
+        arr=["id","date","time","ncheck","ispayed","summa","discount_sum","bonus_discount","pay_bnal","vir","bonus"];
+        fl= [0,0,0,0,0,1,1,1,1,1,1];
+        it= [0,0,0,0,0,0,0,0,0,0,0];
+        cls=["bold flame","","","flame","center","ice rtext","warn rtext","warn rtext","black rtext","ice rtext","green rtext"];
+        arr2=["discount_card","bonus_card","errors","up"];
+        for (var l in json){
+            d=json[l];
+            idd=d['id'];
+            ln="";
+            for (var i in arr){
+                if (fl[i]==1){
+                    f=2;
+                    v=parseFloat(d[arr[i]]).toFixed(f);
+                    it[i]=it[i]+parseFloat(d[arr[i]]);
+                }else{
+                    v=d[arr[i]];
+                }
+                cl=cls[i];
+                if (arr[i]=='ispayed'){
+                    if (v==0){
+                        cl="warn";
+                        v="Отменен";
+                    }else{
+                        v="";
+                        if (d["discount_card"]!=""){
+                            cl="warn";
+                            v=d["discount_card"];
+                        }
+                        if (d["bonus_card"]!=""){
+                            cl="green";
+                            v=d["bonus_card"];
+                        }
+                        if (d["type"]=="1"){
+                            cl="warn";
+                            v="Возврат";
+                        }
+                        if (d["errors"]!=""){
+                            cl="warn";
+                            v="Ошибки";
+                        }
+                    }
+                }
+                ln+=td("",cl,"",v);
+            }
+            on="getcheck("+idd+");"
+            line="<tr onclick='"+on+"' class='f70 sel'>"+ln+"</tr>";
+            content+=line;
+        }
+        line="";
+        for (var v in it){
+            if (it[v]!=0){
+                line+=td("","bold rtext","",it[v],true);
+            }else{line+="<td></td>";}
+        }
+        content+="<tr class='f70 sel'>"+line+"</tr>";
+        _th="<tr>"+th("#")+th("Дата")+th("Время")+th("Чек")+th("Оплата")+th("Всего")+th("Скидка")+th("Бонус-")+th("Безнал")+th("Итого")+th("Бонус+")+"</tr>";
+        _ft="";
+        c="<div class='infoline center'>Просмотр чеков</div>"+
+        "<div class='scroll' style='position:relative;height:75%'>"+
+        "<table class='tbm small black' style='margin-left:2%;width:95%'>"+_th+"<tbody>"+content+"</tbody"+_ft+"</table></div>";
+        chcont.innerHTML=c;
+        ch_cont.hidden=false;
+        btnzc.focus();
+
+    }
+</script>

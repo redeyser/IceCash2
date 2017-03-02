@@ -1,0 +1,24 @@
+<html>
+ <head>
+  <title>IceCash</title>
+  <META http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <link rel="stylesheet" type="text/css" href="/css/%css%" />
+  <script src="/js/funct.js"></script>
+  </head>
+      <body>
+        <div class="ml5" hidden>
+        <span id="version" class="ice small">IceCash %version%</span>
+        <span id="regcode" class="green small">%regcode%</span>
+        <span id="userinfo" class="flame small">%info_user% %info_ip%</span>
+        <input id="currule" type="hidden" value="%info_currule%"/>
+        </div>
+        %body%
+        <div    id="message" class="windowinfo center wmcenter w60 h30 norm" 
+                style="overflow:hidden" 
+                hidden >
+                <div id="message_content"></div>
+                <button id="message_btn" class='but norm' onclick='message.hidden=true;code.focus();' onKeyDown='messagekey(event);'>Закрыть</button>
+        </div>
+      </body>
+</html>
+

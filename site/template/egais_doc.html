@@ -1,0 +1,29 @@
+<div id='info' class='infoline small'>Документ Перемещения</div>
+<div class='scroll small' style='height:90%'>
+    <table class='tbm marg' style='width:98%'>
+       <tr class='ice smallest'>
+           <td class='bold'>Получатель:</td>
+           <td id='tb_recv_RegId'></td>
+           <td id='tb_recv_ShortName'></td>
+           <td>
+            <span id='tb_wb_NUMBER'></span>
+            <span id='tb_status'></span>
+           </td>
+       </tr>
+       <tr class='ice smallest'>
+           <td class='bold'>Параметры:</td>      <td id='tb_wb_Date'></td>
+           <td>
+           <span id='tb_wb_Type'></span>
+           <span id='tb_wb_UnitType'></span>
+           <button id='btn_ostat' class='but small' onclick='get_ostats();'>Остатки</button>
+           </td>
+           <td>
+            <button class='but small' onclick='docsave();'>Сохранить</button>
+            <button class='but small' onclick='doc_cont.hidden=true;'>Закрыть</button>
+           </td>
+       </tr>
+    </table>
+    <table id='tbdata' class='tbm marg' style='width:98%'>
+    </table>
+</div>
+

@@ -1,0 +1,209 @@
+<div class="window w33 padd marg">
+    <span class='flame big'>Сервис</span>
+    <table class="norm">
+        <tr class="ice sel" onclick='showfiles();' %hid_noadmin%><td>Файлы</td></tr>
+        <tr class="ice sel f70" onclick='loadprice();' %hid_noadmin%><td>Загрузить прайс</td></tr>
+        <tr class="ice sel f70" onclick='uploadchecks();' %hid_noadmin%><td>Выгрузить Чеки</td></tr>
+        <tr class="ice sel f70" onclick='uploadzets();' %hid_noadmin%><td>Выгрузить Отчеты</td></tr>
+        <tr class="ice sel f70" onclick='restart_utm();'><td>Перезапустить ЕГАИС</td></tr>
+        <tr class="ice sel f70" onclick='loadact();' %hid_noadmin%><td>Загрузить акции</td></tr>
+        <tr class="ice sel f70" onclick='loadsets();' %hid_noadmin%><td>Обновить переменные</td></tr>
+        <!-- <tr class="warn sel f70" onclick='upgrade();' %hid_noadmin%><td>Обновить программу</td></tr> -->
+        <tr class="warn sel f70" onclick='truncate_trsc();' %hid_noadmin%><td>Обнулить транзакции</td></tr>
+        <tr class="warn sel f70" onclick='truncate_egais();' %hid_noadmin%><td>Обнулить ЕГАИС</td></tr>
+        <tr class="warn sel f70" onclick='reboot();'><td>Перезагрузить компьютер</td></tr>
+        <tr class="warn sel f70" onclick='poweroff();'><td>Выключить компьютер</td></tr>
+        <tr class="ice bold sel" onclick='_relocate("/");'><td>Выход</td></tr>
+    </table>
+
+</div>
+
+<div id="fs" class="windowinfo center wmaxcenter h90 w90 norm" hidden>
+    <div id="fscont" class="norm" >  </div>
+    <div class='small black ltext marg'>
+        <form name='load' method='POST' enctype="multipart/form-data" action='/service'/>
+        <input class="itext small ice" name="file" id=file type="file" hidden onchange='putf();'/>
+        </form>
+    </div>
+    <button class='norm marg but' name='put_file' onclick='selfile();' >Upload</button>
+    <button id="btn" class='but norm marg rtext' onclick='fs.hidden=true;fscont.innerHTML="";'>Close</button>
+</div>
+
+<script>
+    cur_path="";
+    function poweroff(){
+        if (confirm("Выключить кассу?")){
+            r=_getdata("/sys/poweroff");
+        }
+        if (r=="1"){
+            _msg="Сейчас касса будет выключена";
+        }else{
+            _msg="Ошибка";
+        }
+        alert_message("Выключение",_msg);
+    }
+    function reboot(){
+        if (confirm("Перезагрузить кассу?")){
+            r=_getdata("/sys/reboot");
+        }
+        if (r=="1"){
+            _msg="Сейчас касса будет перезагружена";
+        }else{
+            _msg="Ошибка";
+        }
+        alert_message("Перезагрузка",_msg);
+    }
+    function restart_utm(){
+        if (confirm("Вы уверены?")){
+            r=_getdata("/sys/restart_utm");
+        }
+        if (r=="1"){
+            _msg="Егаис перезапущен. Проверьте работоспособность через пару минут";
+        }else{
+            _msg="Ошибка";
+        }
+        alert_message("Перезапуск УТМ",_msg);
+    }
+    function truncate_trsc(){
+        if (confirm("Вы уверены?")){
+            r=_getdata("/sys/truncate_trsc");
+        }
+        if (r=="1"){
+            _msg="База данных обнулена";
+        }else{
+            _msg="Ошибка обнуления";
+        }
+        alert_message("Обнуление",_msg);
+    }
+    function truncate_egais(){
+        if (confirm("Вы уверены?")){
+            r=_getdata("/sys/truncate_egais");
+        }
+        if (r=="1"){
+            _msg="База данных обнулена";
+        }else{
+            _msg="Ошибка обнуления";
+        }
+        alert_message("Обнуление",_msg);
+    }
+    function selfile(){
+       document.getElementById("file").click();
+    }
+    function putf(){
+        r=_putfile("/files/"+cur_path);
+        if (r=="0"){
+            alert_message("Ошибка","Ошибка записи/разархивирования или загрузки прайса");
+        }else{
+            alert_message("Занрузка файла","Файл загружен");
+        }
+        showfiles();
+       
+    }
+
+
+    function showfiles(){
+        lsfiles();
+    }
+    function _chdir(n){
+        cur_path=n;
+        showfiles();
+    }
+    function uploadchecks(){
+        r=_getdata("/iceserv/trsc/send");
+        if (r=="0"){
+            alert_message("Выгрузка","Нет невыгруженных чеков");
+        }else{
+            alert_message("Выгрузка","Чеки выгружены");
+        }
+    }
+    function uploadzets(){
+        r=_getdata("/iceserv/Zet/send");
+        if (r=="0"){
+            alert_message("Выгрузка","Нет невыгруженных отчетов");
+        }else{
+            alert_message("Выгрузка","Выгружены зет отчеты: "+r);
+        }
+    }
+    function loadsets(){
+        r=_getdata("/iceserv/regs_sets");
+        if (r=="0"){
+            alert_message("занрузка переменных","Изменений нет");
+        }else{
+            alert_message("занрузка переменных","Переменные обновлены "+r);
+        }
+    }
+    function loadact(){
+        r=_getdata("/iceserv/actions");
+        if (r=="0"){
+            alert_message("занрузка акций","новых акций нет");
+        }else{
+            alert_message("занрузка акций","загружены акции "+r);
+        }
+    }
+    function upgrade(){
+        r=_getdata("/iceserv/upgrade/prog");
+        alert(r);
+        if (r=="1"){
+            alert_message("Загрузка обновления","Программа обновлена. Нужно перезапустить сервис. Старая версия в папке _dIceCash");
+        }else{
+            alert_message("Загрузка обновления","Ошибка");
+        }
+    }
+    function loadprice(){
+        r=_getdata("/iceserv/myprice");
+        if (r=="0"){
+            alert_message("Занрузка прайса","Новый прайс не обнаружен");
+        }else{
+            alert_message("Занрузка прайса","Загружен новый прайс "+r);
+        }
+    }
+    function _getfile(n){
+        _relocate("/files/"+n);
+        showfiles();
+    }
+    function _del(n){
+        r=_getdata("/fo/rm?path="+n);
+        showfiles();
+    }
+
+    function lsfiles(){
+        r=_getdata("/fo/ls?json=1&path="+cur_path);
+        if (r=="0"){
+            return;
+        }
+        json=JSON.parse(r);
+        dirs=json[0];
+        files=json[1];
+        content="";
+        c=0;
+        for (var i in dirs){
+          c=c+1;
+          d=dirs[i]
+          if (cur_path!=""){
+            path=cur_path+"/";
+          }else{
+            path="";
+          }
+          content+="<tr onclick='_chdir(\""+path+d+"\");'><td class='flame bold'>"+d+"</td><td></td><td></td></tr>";
+        }
+        for (var i in files){
+          c=c+1;
+          d=files[i]
+          if (cur_path!=""){
+            path=cur_path+"/";
+          }else{
+            path="";
+          }
+          content+="<tr><td class='ice bold'>"+d+"</td><td onclick='_getfile(\""+path+d+"\");'>Download</td><td onclick='_del(\""+path+d+"\")'>Delete</td></tr>";
+        }
+        fscont.innerHTML="<div class='infoline center'>Files</div>"+
+        "<div class='scroll' style='position:relative;height:70%'>"+
+        "<table class='tbm small black' style='margin-left:2%;width:95%'><tbody>"+
+        "<tr>"+
+        "<td onclick='_chdir(\"\");'>\\</td><td></td><td></td></tr>"+
+        "</tr>"+
+        content+"</tbody</table></div>";
+        fs.hidden=false;
+        btn.focus();
+    }
+</script>

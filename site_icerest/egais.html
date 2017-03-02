@@ -1,0 +1,329 @@
+<table>
+<tr>
+<td>
+<div class="window padd marg">
+    <span class='flame big'>ЕГАИС</span>
+    <table class="small">
+        <tr class="ice sel" onclick='_send_places();'><td>Запросить список ТТ</td></tr>
+        <tr class="ice sel" onclick='_send_ostat();'><td>Запросить остатки</td></tr>
+        <tr class="ice sel" onclick='_send_reply();'><td>Запросить документ</td></tr>
+        <tr class="ice sel" onclick='_send_docs();'><td>Отправить документы</td></tr>
+        <tr class="ice sel" onclick='_get_docs();'><td>Получить документы</td></tr>
+        <tr class="ice sel" onclick='_get_ostat();'><td>Просмотр остатков</td></tr>
+        <tr class="ice sel" onclick='_get_list();'><td>Просмотр</td></tr>
+        <tr class="ice bold sel" onclick='_relocate("/");'><td>В начало</td></tr>
+    </table>
+
+</div>
+<div hidden>%online%</div>
+<div id='foo' class="window padd marg ice small">
+%connect%
+</div>
+</td>
+<td>
+    <div class="window padd marg small" id="res" hidden>
+    </div>
+</td>
+</tr>
+</table>
+<div id="doc_cont" class="windowinfo center wmaxcenter w90 h90 norm" hidden>
+    <div id="doccont" class="norm" >  </div>
+</div>
+<script>
+  function chkol(idd,id){
+    td="q_"+idd+"_"+id;
+    td=document.getElementById(td);
+    kol=prompt("Введите количество:",td.innerHTML);
+    kol=parseFloat(kol).toFixed(4);
+    r=_postdata("/egais/put/position",["iddoc","identity","quantity"],[idd,id,kol]);
+    if (r=='1'){
+        td.innerHTML=kol;
+        td.className='warn';
+    }
+  }
+  function _get_ostat(){
+    r=_getdata("/egais/get/ostat");
+    data=JSON.parse(r);
+    _cont="";
+    for (var i in data){
+        ct=data[i];
+    _cont+=
+   "<tr class='smallest'>"+
+   "<td class='flame'>"+ct[7]+"</td>"+
+   "<td class='black'>"+ct[11]+"</td>"+
+   "<td class='black'><span class='flame'>"+ct[5]+"</span> <span class='ice'>#"+ct[1]+" #"+ct[2]+"</span><br>"+ct[4]+"</td>"+
+   "<td class='rtext black'>"+ct[3]+"</td>"+
+   "</tr>";
+    }
+    doccont.innerHTML="<div class='infoline small'>Остатки в ЕГАИС</div>"
+    +"<div class='scroll' style='height:80%'><table class='tbm marg' style='width:98%'>"+_cont+"</table></div><button class='but small' style='margin-left:20px' onclick='doc_cont.hidden=true;chcont.innerHTML=\"\";'>Закрыть</button>";
+    doc_cont.hidden=false;
+  }
+  function _get_list(){
+    tp="<option value=0 selected>Приходы</option>"+
+    "<option value=1>Возвраты</option>";
+    opk="<option value=0>Все</option>"+
+    "<option selected value=1>Новые</option>"+
+    "<option value=2>Готовые</option>"+
+    "<option value=3>Отправленные</option>"+
+    "<option value=4>Подписанные</option>"+
+    "<option value=5>Принятые в ФСРАР</option>"+
+    "<option value=6>Отвергнутые ФСРАР</option>";
+    cdt= new Date();
+    dtv1 = cdt.getFullYear()+"-"+(cdt.getMonth()+1)+"-"+cdt.getDate();
+    dtv2 = cdt.getFullYear()+"-"+(cdt.getMonth()+1)+"-"+cdt.getDate();
+    postav=_getdata("/egais/get/postav");
+    json=JSON.parse(postav);
+    op="<option value=0></option>";
+    for (var i in json){
+        d=json[i];
+        op+="<option value='"+d[0]+"'>"+d[1]+"</option>";
+    }
+
+    s="<div class='small black'> Период:"+
+    "<input class=\"itext ice small\" id=\"dt1\" name=\"dt1\" size=8  type=\"text\" value=\"\"/>"+
+    "<input class=\"itext ice small\" id=\"dt2\" name=\"dt2\" size=8  type=\"text\" value=\""+dtv2+"\"/><br>"+
+    "Категория:<select class='itext ice small' id='s_status'>"+opk+
+    "</select><br>"+
+    "Поставщик:<select id='s_postav' class='itext ice small'>"+op+
+    "</select><br>"+
+    "Тип документа:<select id='s_type' class='itext ice small'>"+tp+
+    "</select><br>"+
+    "<button class='but small' onclick='_get_mydocs();'>Просмотр</button>";
+    res.innerHTML=s;
+    res.hidden=false;
+  }
+  function savedoc(idd){
+   r=_postdata("/egais/put/mydoc",["iddoc","status","answer"],[idd,set_status.value,set_answer.value]);
+  }
+  function deldoc(idd){
+   r=_postdata("/egais/del/mydoc",["iddoc"],[idd]);
+  }
+  function create_return(id,idd){
+    if(confirm("Создать возврат?")){
+        r=_getdata("/egais/create/return?id="+id+"&idd="+idd);
+        if (r!="1"){
+           alert_message("Ошибка","Документ не может быть создан"); 
+        }else{
+           alert_message("Создан документ возврата","Документ создан, войдите в просмотр, чтобы отредактировать и закрыть его"); 
+        }
+    }
+  }
+  function _get_mydoc(idd){
+    r=_getdata("/egais/get/mydoc?idd="+idd);
+    if (r=="0"){
+        res.innerHTML="Ошибка запроса";
+        return;
+    }
+    data=JSON.parse(r);
+    _cont="";
+    hd=data['hd'];
+    cts=data['ct'];
+    acc='';rej='';
+    if (hd['answer']=='Accepted'){
+        _accept="Подтверждено";
+        acc='selected';
+    }
+    if (hd['answer']=='Rejected'){
+        _accept="Отвергнуто";
+        rej='selected';
+    }
+    if (hd['status']<2){
+        sel=
+        "<span class='black small'>Статус:</span><select class='itext ice small' id='set_status'>"+
+        "<option value=1 selected>Открыт</option>"+
+        "<option value=2 >Закрыт</option>"+
+        "</select>"+
+        "<span class='black small'>Ответ:</span>"+
+        "<select class='itext ice small' id='set_answer'>"+
+        "<option value='Accepted' "+acc+">Подтвердить</option>"+
+        "<option value='Rejected' "+rej+">Отвергнуть</option>"+
+        "</select>"+
+        "<button class='black but small' onclick='savedoc("+idd+");doc_cont.hidden=true;'>Сохранить</button>";
+    }else{
+        
+        sel="<span class='norm warn'>"+_accept+"</span>";
+    }
+    if (hd['type']=='1'){
+        docname="Документ возврата";
+        sel+="<button class='but small' style='margin-left:20px' onclick='deldoc("+idd+");doc_cont.hidden=true;chcont.innerHTML=\"\";'>Удалить</button>";
+    }else{
+        docname="Документ поставки";
+    }
+    sel+="<button class='but small' style='margin-left:20px' onclick='doc_cont.hidden=true;chcont.innerHTML=\"\";'>Закрыть</button>";
+   _cont+=
+   "<tr class='ice smallest'>"+
+   "<td class='bold'>Отправитель:</td><td class='black bold'>"+hd['send_ShortName']+"</td>"+
+   "<td class='bold'>ID:</td><td>"+hd['send_RegId']+"</td>"+
+   "<td class='bold'>ИНН:</td><td>"+hd['send_INN']+"</td>"+
+   "<td class='bold'>КПП:</td><td>"+hd['send_KPP']+"</td>"+
+   "</tr>"+
+   "<tr class='ice smallest'>"+
+   "<td class='bold'>Получатель:</td><td>"+hd['recv_ShortName']+"</td>"+
+   "<td class='bold'>ID:</td><td>"+hd['recv_RegId']+"</td>"+
+   "<td class='bold'>ИНН:</td><td>"+hd['recv_INN']+"</td>"+
+   "<td class='bold'>КПП:</td><td>"+hd['recv_KPP']+"</td>"+
+   "</tr>"+
+   "<tr class='ice smallest'>"+
+   "<td class='bold'>Номер:</td><td class='black bold'>"+hd['wb_NUMBER']+"</td>"+
+   "<td class='bold'>ТТН.:</td><td class='black bold'>"+hd['tc_RegId']+"</td>"+
+   "<td class='bold'>Дата.д.:</td><td>"+hd['wb_Date']+"</td>"+
+   "<td class='bold'>Дата.о.:</td><td>"+hd['wb_ShippingDate']+"</td>"+
+   "</tr>"+
+   "<tr class='ice smallest'>"+
+   "<td class='bold'>Тип.док:</td><td>"+hd['wb_Type']+"</td>"+
+   "<td class='bold'>Упаковка:</td><td>"+hd['wb_UnitType']+"</td>"+
+   "<td class='bold'>Время:</td><td>"+hd['puttime']+"</td>"+
+   "<td class='bold'>Статус:</td><td>"+hd['status']+"</td>"+
+   "</tr>";
+   _hd="<tr smallest>"+
+   "<th>#</th>"+
+   "<th>Производитель</th>"+
+   "<th>Товар</th>"+
+   "<th>Код</th>"+
+   "<th>Объем</th>"+
+   "<th>Градус</th>"+
+   "<th>Количество</th>"+
+   "<th>Измен</th>"+
+   "</tr>";
+    _cont2=""
+    for (var i in cts){
+    ct=cts[i];
+    n="tr_"+idd+"_"+ct['id'];
+    td="q_"+idd+"_"+ct['id'];
+    id=ct['id'];
+    if ((ct['real_Quantity']=='None')||(ct['real_Quantity']==ct['wb_Quantity'])){
+        cl='black bold';
+    }else{
+        cl='warn';
+    }
+    _cont2+=
+   "<tr class='ice smallest' id='"+n+"'>"+
+   "<td class='flame'>"+ct['wb_Identity']+"</td>"+
+   "<td class='black'>"+ct['oref_ShortName']+"</td>"+
+   "<td class='black bold' onclick='create_return("+idd+","+id+");'>"+ct['pref_ShortName']+"</td>"+
+   "<td class='flame'>"+ct['pref_AlcCode']+"</td>"+
+   "<td class='rtext ice'>"+ct['pref_Capacity']+"</td>"+
+   "<td class='rtext black'>"+ct['pref_AlcVolume']+"</td>"+
+   "<td class='rtext black'>"+ct['wb_Quantity']+"</td>"+
+   "<td id='"+td+"' class='"+cl+"' onclick='chkol("+idd+","+id+");'>"+ct['real_Quantity']+"</td>"+
+   "</tr>";
+    }
+    doccont.innerHTML="<div class='infoline small'>"+docname+" #"+idd+"</div>"
+    +"<div class='scroll small' style='height:80%'><table class='tbm marg' style='width:98%'>"+_cont+"</table>"+sel
+    +"<table class='tbm marg' style='width:98%'>"+_hd+_cont2+"</table></div>";
+    doc_cont.hidden=false;
+    //alert(r);
+  }
+  function _get_mydocs(){
+    stat=['','Новый','Готовый','Отправленный','Подписанный','Принятый','Отвергнутый'];
+    status=s_status.value;
+    _postav="";
+    _dtv1="";
+    _dtv2="";
+
+    if (s_postav.value!="0"){
+        _postav="&postav="+s_postav.value;
+    }
+    _type="&type="+s_type.value;
+    if (dt1.value!=""){
+        _dtv1="&dt1="+dt1.value;
+    }
+    if (dt2.value!=""){
+        _dtv2="&dt2="+dt2.value;
+    }
+
+    r=_getdata("/egais/get/mydocs?status="+status+_type+_postav+_dtv1+_dtv2);
+    if (r=="0"){
+        res.innerHTML="Ошибка запроса";
+        return;
+    }
+    data=JSON.parse(r);
+    _cont="";
+    //alert(r);
+    for (var i in data){
+        d=data[i];
+        idd=d['id'];
+        puttime=d['puttime'];
+        wbnumber=d['wb_NUMBER'];
+        wbdate=d['wb_Date'];
+        sender=d['send_ShortName'];
+        answer=d['answer'];
+        result=stat[parseInt(d['status'])];
+        cl="black";
+        if (parseInt(d['status'])==2){
+            cl='ice';
+        }
+        if (parseInt(d['status'])==5){
+            cl='green';
+        }
+        if (parseInt(d['status'])==6){
+            cl='warn';
+        }
+        //result=d['tc_OperationResult'];
+        _cont+="<tr class='smallest "+cl+"' onclick='_get_mydoc("+idd+");'><td class='flame'>"+idd+"</td>"+
+        "<td >"+puttime+"</td>"+
+        "<td >"+wbnumber+"</td>"+
+        "<td >"+sender+"</td>"+
+        "<td >"+wbdate+"</td>"+
+        "<td >"+answer+"</td>"+
+        "<td >"+result+"</td>"+
+        "</tr>";
+    }
+    _hd="<tr>"+
+    "<th>#</th><th>Время</th><th>Номер</th><th>Поставщик</th><th>Дата</th><th>Операция</th><th>Статус</th>"+
+    "</tr>";
+    res.innerHTML="<table class='tb'>"+_hd+_cont+"</table>";
+    res.hidden=false;
+  }
+  function _send_reply(){
+    ttn=prompt("Ввведите номер ТТН:","");
+    r=_getdata("/egais/send/reply?ttn="+ttn);
+        foo.innerHTML=r;
+  }
+  function _send_ostat(){
+    r=_getdata("/egais/send/ostat");
+        foo.innerHTML=r;
+  }
+  function _send_places(){
+    r=_getdata("/egais/send/places");
+        foo.innerHTML=r;
+  }
+  function _send_docs(){
+    r=_getdata("/egais/send/docs");
+    res.innerHTML=r;
+    alert("Документов отправлено:"+r);
+  }
+  function _get_docs(){
+    r=_getdata("/egais/get/docs");
+    if (r=="0"){
+        res.innerHTML="Ошибка запроса";
+        return;
+    }
+    //alert(r);
+    json=JSON.parse(r);
+    _cont="";
+    data=json['data_url'];
+    for (var i in data){
+        d=data[i];
+        idd=d['idd'];
+        url=d['url'];
+        _cont+="<tr><td class='flame'>"+idd+"</td><td class='ice'><a href='"+url+"'>"+url+"</a></td></tr>";
+    }
+    res.innerHTML="<table class='tb'>"+_cont+"</table>";
+    res.hidden=false;
+
+    //alert(json['result']);
+    s="";
+    if (json['result']['WayBill']){
+        s="Принято ТТН:"+json['result']['WayBill']+"\n";
+    }
+    if (json['result']['TTNInformBReg']){
+        s+="Принято справок Б:"+json['result']['TTNInformBReg']+"\n";
+    }
+    if (json['result']['Ticket']){
+        s+="Принято квитанций:"+json['result']['Ticket']+"\n";
+    }
+    alert(s);
+  }
+</script>

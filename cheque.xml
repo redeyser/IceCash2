@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Cheque
+inn="4207008740"
+datetime="1907161520"
+kpp="420501001"
+kassa="1"
+address="г. Кемерово, пр.Октябрьский 68"
+name="ООО фирма Илва"
+number="327"
+shift="1"
+>
+
+	<Bottle barcode="22N000003WDONDRWDQ60B0160413001005647J2PPB18T6X3JNGW7J7AI7VK3LQUR966"
+	ean="4601463003032" price="154.00" volume="0.2500"/>
+
+</Cheque>

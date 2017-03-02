@@ -1,0 +1,28 @@
+<div class='window w800'>
+    <form name='printers' method='POST' enctype="multipart/form-data" action=''/>
+        <input type=hidden name='addnew' value=1 /> 
+	<button name="_addnew" class="but" type="button" onclick="window.location='/printers?id=-1';" class="btn btn-success" aria-label="Left Align">Создать новый</button>
+    </form>
+    <table class="tb">
+        <tr>
+            <th>Наимен.</th>
+            <th>Произв.</th>
+            <th>Тип подключ.</th>
+            <th>Сет Адрес</th>
+            <th>Сет Порт</th>
+            <th>Код кодировки</th>
+        </tr> 
+        %printers%
+    </table>
+</div>
+<div id='lsusb' hidden class='window w800 white'>
+    <table class='tb' id='lsusbtab'>
+    </table>
+</div>
+
+<div id='kkm_status' hidden class='window w800 white'>
+    <table class="tb" id='kkmstatus'>
+    </table>
+</div>
+
+

@@ -1,0 +1,91 @@
+<div class='window w800 white'>
+    <form name='edprint' method='POST' enctype="multipart/form-data" action=''/>
+    </form>
+        Принтер:
+        <select name="printer" id="printer" class="itext green" onchange='select_printer();'>
+        %printers%
+        </select>
+        Команда:
+        <select id='cmd' name="cmd" class="itext green" onchange='select_cmd();'>
+        %cmd_list%
+        </select>
+        Номер:<input class='itext green' size=2 id='rownumber' value='' />
+        <button class='but' onclick='addcmd();' >Вставить</button>
+        <button class='but' onclick='print();' >Печать</button>
+        
+        <textarea class='itext green' cols=92 rows=10  id='msg' name='msg' ></textarea>
+        
+        <div id="im" hidden>
+        Картинка на сервере:
+        <select id='image' class='itext green'>
+        %images%
+        </select>
+        </div>
+
+        <div id="cashdraw" hidden>
+        Подача сигнала на контакты:
+        <select id='pin' class='itext green'>
+            <option value='2'>2</option>
+            <option value='5'>5</option>
+        </select>
+        </div>
+
+        <div id="barcode" hidden>
+        Штрихкод:<input class='itext red' size=13 type='text' id='barcode_text' value=''/>
+        Тип:
+        <select id='barcode_type' class='itext green'>
+        <option selected value='EAN13'>EAN13</option>
+        <option value='CODE39'>CODE39</option>
+        </select>
+        Шир:<input type='text' id='barcode_width' class='itext red' size=3 value='0'/>
+        Выс:<input type='text' id='barcode_height' class='itext red' size=3 value='0'/>
+        Текст:
+        <select id='barcode_pos' class='itext red'>
+        <option selected value='OFF'>OFF</option>
+        <option value='BOTH'>BOTH</option>
+        <option value='ABOVE'>ABOVE</option>
+        <option value='BELOW'>BELOW</option>
+        </select>
+        </div>
+
+        <div id="set" hidden>
+        bold:<input type='checkbox' id='set_bold'/>
+        size:
+        <select id='set_size' class='itext red'>
+        <option value=''></option>
+        <option value='normal'>Нормальный</option>
+        <option value='2w'>Широкий</option>
+        <option value='2h'>Высокий</option>
+        <option value='2x'>Двойной</option>
+        </select>
+        font:
+        <select id='set_font' class='itext red'>
+        <option value=''></option>
+        <option value='a'>A</option>
+        <option value='b'>B</option>
+        <option value='c'>C</option>
+        </select>
+        align:
+        <select id='set_align' class='itext red'>
+        <option value=''></option>
+        <option value='left'>Влево</option>
+        <option value='center'>По центру</option>
+        <option value='right'>Вправо</option>
+        </select>
+        inverted:<input type='checkbox' id='set_invert'/>
+
+        </div>
+        
+</div>
+
+<div class='window w800 white'>
+    <span class="green">Программа печати</span>
+    <table id='printprog' class='tb'>
+    <tr><th>N</th><th>Команда</th><th>Параметры</th></tr>
+    </table>
+</div>
+
+<div class='window w800 white'>
+    <span class="red">XML файл</span>
+    <textarea id='query' class='itext red' cols=95 rows=12></textarea>
+</div>

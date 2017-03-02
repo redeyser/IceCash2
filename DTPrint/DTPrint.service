@@ -1,0 +1,19 @@
+[Unit]
+Description=DTPrint
+After=syslog.target
+After=network.target
+After=mysql.service
+Requires=mysql.service
+
+[Service]
+Type=forking
+WorkingDirectory=/root/dtprint
+
+User=root
+Group=root
+
+ExecStart=/bin/sh /root/dtprint/start.sh
+TimeoutSec=10
+
+[Install]
+WantedBy=multi-user.target 

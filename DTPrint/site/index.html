@@ -1,0 +1,281 @@
+<html>
+ <head>
+  <title>DTPrint service</title>
+  <META http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <link rel="stylesheet" type="text/css" href="/base.css" />
+  <script>
+function chtabval(t,tb,r,c){
+    newvalue=prompt("Укажите новое значение ",t.innerHTML);
+    if (newvalue!=null){
+        n=newvalue;
+        x=_postdata('/put_kkm_tabvalue',['printer','value','table','row','col'],[prname.value,n,tb,r,c]);
+        if (x=='0'){
+            t.innerHTML=newvalue;
+        }
+    }
+}
+function changetabvalue(t,incrow){
+    id=t.id;
+    newvalue=prompt("Укажите новое значение для "+id,t.innerHTML);
+    if (newvalue!=null){
+        n=newvalue;
+        x=_postdata('/put_kkm_tabvalue',['printer','tabval','incrow','value'],[prname.value,id,incrow,n]);
+        if (x=='0'){
+            t.innerHTML=newvalue;
+        }
+    }
+}
+function select_printer(){
+    cmd.innerHTML=_postdata('/cmd_list_html',['printer'],[printer.value]);
+}
+function set_kkmcurtime(){
+    alert(_postdata('/set_kkm_curtime',['printer'],[prname.value]));
+}
+function set_kkmcurdate(){
+    alert(_postdata('/set_kkm_curdate',['printer'],[prname.value]));
+}
+function get_kkmstatus(){
+    kkmstatus.innerHTML=_postdata('/get_kkm_status',['printer'],[prname.value]);
+    kkm_status.hidden=false;
+}
+function get_kkmtabstr(){
+    kkmstatus.innerHTML=_postdata('/get_kkm_tabstrings',['printer','tabval','incrow','nvalues'],[prname.value,'textlines','0','20']);
+    kkm_status.hidden=false;
+}
+function set_kkmrenull(){
+    
+    alert(_postdata('/set_kkm_renull',['printer'],[prname.value]));
+}
+function set_kkmport(){
+    newvalue=prompt("Укажите новую скорость:",speed.innerHTML);
+    alert(_postdata('/set_kkm_port',['printer','speed'],[prname.value,newvalue]));
+}
+function get_kkmtabval(){
+    if (type_device.value=="2"){
+        kkmstatus.innerHTML=_postdata('/get_kkm_tabvalues',['printer'],[prname.value]);
+    }
+    if (type_device.value=="3"){
+        r=_postdata('/get_kkm_tables',['printer'],[prname.value]);
+        json=JSON.parse(r);
+        s="<tr><td><select id='idtab' class='itext green' onchange='get_kkmtabvalues();'><option value='0'></option>";
+
+        for (var d in json){
+            i=parseInt(d)+1;
+            s+= "<option value='"+i+"'>"+json[d][2]+";"+json[d][0]+";"+json[d][1]+"</option>";
+        }
+        s+="</select></td></tr>";
+        kkmstatus.innerHTML=s;
+    }
+    kkm_status.hidden=false;
+}
+function get_kkmtabvalues(){
+    idd=idtab.value;
+    get_kkmtabval()
+    h=kkmstatus.innerHTML;
+    if (type_device.value=="3"){
+        r=_postdata('/get_kkm_tabvalues',['printer','table'],[prname.value,idd]);
+        json=JSON.parse(r);
+        s="<tr><td><table class='tb small green'>";
+        if (json.length==1){
+            one=true;
+        }else{ one=false;}
+        first=true;
+        for (var i in json){
+            _i=parseInt(i)+1;
+            if (!one){ s+="<tr>";}
+            tr=json[i];
+            for (var j in tr){
+                _j=parseInt(j)+1;
+                td=tr[j];
+                if (!one){
+                    if (first){
+                        s+="<th>"+td[4]+"</th>";
+                    }else{
+                        s+= "<td class='green small' onclick='chtabval(this,"+idd+","+_i+","+_j+");'>"+td[5]+"</td>";
+                    }
+                }else{
+                    s+= "<tr><td class='red small'>"+td[4]+"</td><td class='green small' onclick='chtabval(this,"+idd+","+_i+","+_j+");'>"+td[5]+"</td></tr>";
+                }
+            }
+            first=false;
+            if (!one){s+="</tr>";}
+        }
+        s+="</table></td></tr>";
+        kkmstatus.innerHTML=h+s;
+    }
+    kkm_status.hidden=false;
+}
+
+function _putfile(page) {
+    var file = file_image.files[0];
+    if (!file) { return; }
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", page, false);
+    var formData = new FormData();
+    formData.append("file_image", file);
+    xhr.send(formData);
+    return xhr.responseText;
+}
+
+function _postdata(page,a_params,a_values){
+    var xhrp = new XMLHttpRequest();
+    xhrp.open('POST', page, false);
+    xhrp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    body="";
+    for(var i=0; i<a_params.length; i++) {
+        n=a_params[i];
+        v=a_values[i];
+        if (body.length>0){add="&";}else{add="";}
+        body = body + add + n + "=" + encodeURIComponent(v);
+    }
+    xhrp.send(body);
+        if (xhrp.status != 200) {
+            alert( xhrp.status + ': ' + xhrp.statusText );
+            return '#err';
+        } else {
+            return xhrp.responseText;
+        }
+        return '#err';
+}
+function viewconnect(t){
+    if (type_connect.value==1){
+        tusb.hidden=false;
+    }else{ tusb.hidden=true; }
+    if (type_connect.value==2){
+        tnet.hidden=false;
+    }else{ tnet.hidden=true; }
+}
+function onclick_tabscan(t){
+    if (confirm("Настроить текущий принтер на это устройство?")){
+        i=t.rowIndex;
+            id_vendor.value  = lsusbtab.rows[i].cells[0].innerHTML;
+            id_product.value = lsusbtab.rows[i].cells[1].innerHTML;
+            vendor.value     = lsusbtab.rows[i].cells[2].innerHTML;
+            _interface.value = lsusbtab.rows[i].cells[4].innerHTML;
+            byte1.value      = lsusbtab.rows[i].cells[5].innerHTML;
+            byte2.value      = lsusbtab.rows[i].cells[6].innerHTML;
+    }
+    lsusb.hidden=true;
+}
+function select_cmd(){
+    if ((cmd.value==1)||(cmd.value==3)){
+        msg.hidden=false;
+    }else{msg.hidden=true;}
+
+    if ((cmd.value==2)||(cmd.value==103)){
+        barcode.hidden=false;
+    }else{
+        barcode.hidden=true;
+    }
+    if (cmd.value==4){
+        im.hidden=false;
+    }else{
+        im.hidden=true;
+    }
+    if (cmd.value==5){
+        set.hidden=false;
+    }else{
+        set.hidden=true;
+    }
+    if (cmd.value==7){
+        cashdraw.hidden=false;
+    }else{
+        cashdraw.hidden=true;
+    }
+}
+function printprog_number(){
+    L=printprog.rows.length;
+    for (i=1;i<L;i++){
+        printprog.rows[i].cells[0].innerHTML=i;
+    }
+}
+function addcmd(){
+    if (rownumber.value!=''){  row=printprog.insertRow(rownumber.value); } else {row=printprog.insertRow();}
+    cellid=row.insertCell();
+    cell1=row.insertCell();
+    cell2=row.insertCell();
+    cellid.innerHTML=row.rowIndex;
+    row.className='red';
+
+    cell1.innerHTML=cmd.options[cmd.selectedIndex].text;
+    row.onclick=function (event){
+        printprog.deleteRow(this.rowIndex);
+        printprog_number();
+    }
+    
+    if ((cmd.value==1)||(cmd.value==3)){
+        cell2.innerHTML="<list><p><n>text</n><v>"+msg.value+"</v></p><p><n>size</n><v>5</v></p></list>";
+    }else{
+        if ((cmd.value==2)||(cmd.value==103)){
+            _cnt="<sv>"+barcode_type.value+'</sv><sv>'+barcode_width.value+'</sv><sv>'+barcode_height.value+'</sv><sv>'+barcode_text.value+'</sv><sv>'+barcode_pos.value+"</sv>";
+            cell2.innerHTML="<list><p type=\"array\"><n>adata</n><v>"+_cnt+"</v></p></list>";
+        }
+        if (cmd.value==4){
+            cell2.innerHTML="<list><p><n>filename</n><v>"+image.value+"</v></p></list>";
+        }
+        if (cmd.value==5){
+            if (set_bold.checked){
+                bold="bold";
+            }else{bold="";}
+            if (set_invert.checked){
+                invert="inverted";
+            }else{invert="";}
+            _cnt="<sv>"+bold+'</sv><sv>'+set_size.value+'</sv><sv>'+set_font.value+'</sv><sv>'+set_align.value+'</sv><sv>'+invert+"</sv>";
+            cell2.innerHTML="<list><p type=\"array\"><n>adata</n><v>"+_cnt+"</v></p></list>";
+        }
+    }
+    printprog_number();
+}
+
+function get_cookie(name){
+    name=name+'=';
+    cook = document.cookie;
+    ca=cook.split(";");
+    for (i=0;i<=ca.length;i++){
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1);
+        if (c.indexOf(name) == 0) return c.substring(name.length,c.length);
+    }
+    return "";
+}
+
+function print(){
+    login=get_cookie('login');
+    xml = '<?xml version="1.0" encoding="UTF-8"?>'+"\n";
+    xml = xml + "<dtprint>\n";
+    xml = xml + "<printer>"+printer.value+"</printer>\n";
+    xml = xml + "<cmdlist>\n";
+    L=printprog.rows.length;
+    for (i=1;i<L;i++){
+        _cmd = printprog.rows[i].cells[1].innerHTML;
+        _text = printprog.rows[i].cells[2].innerHTML;
+        xml = xml + "\t<cmd>\n" + "\t\t<command>"+_cmd+"</command>\n"+"\t\t<param>"+_text+"</param>\n\t</cmd>\n";
+    }
+    xml = xml + "</cmdlist>\n";
+    xml = xml + "</dtprint>";
+    query.value=xml;
+    alert(_postdata('/cmd',['xml'],[xml]));
+}
+function delete_file(f){
+    if (confirm("Удалить?")){
+        _postdata('/files/',['delete'],[f]);
+        window.location='/files';
+    }
+}
+  </script>
+  </head>
+      <body>
+        <h1> DTPrint for IceCash v %version%</h1>
+        <span class="red">%info%</span>
+        <hr>
+        <div style="margin-top:10px;margin-bottom:10px">
+            <a href='/login'>Авторизация</a>
+            <a href='/sets'>Настройки</a>
+            <a href='/printers'>Принтеры</a>
+            <a href='/print'>Печать</a>
+            <a href='/files'>Файлы</a>
+        </div>
+        %body%
+      </body>
+</html>
+

@@ -1,0 +1,29 @@
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+ICEDIR=/home/kassir/dIceCash
+
+# m h dom mon dow user  command
+17 *    * * *   root    cd / && run-parts --report /etc/cron.hourly
+25 6    * * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.daily )
+47 6    * * 7   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.weekly )
+52 6    1 * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.monthly )
+# time
+55 *    * * * root ntpdate blue.beer
+50 *    * * * root ntpdate office
+# shutdown
+00 02   * * * root shutdown -h now
+# upload
+*/5  *  * * *   kassir  cd $ICEDIR && python dUpload.py dw_zets
+*/10 *  * * *   kassir  cd $ICEDIR && python dUpload.py dw_price
+*/12 *  * * *   kassir  cd $ICEDIR && python dUpload.py dw_actions
+*/14 *  * * *   kassir  cd $ICEDIR && python dUpload.py dw_sets
+#upgrade
+15    *  * * *   root  cd $ICEDIR && python dUpload.py dw_upgrade_prog
+16    *  * * *   root  cd $ICEDIR && python dUpload.py dw_upgrade_base
+20    *  * * *   root  cd $ICEDIR && python dUpload.py do_upgrade_base
+#egais
+*/10 *  * * *   kassir  cd $ICEDIR && python dUpload.py restart_egais
+*/15 *  * * *   kassir  cd $ICEDIR && python dUpload.py ex_egais
+30   *  * * *   kassir  cd $ICEDIR && python dUpload.py vf_egais
+00  23  * * *   kassir  gmessage -center -ontop -sticky -nofocus -title 'Выключение' -wrap -fg red -display :0 "Не забудте снять Z-отчет. Кассу не выключайте, это важно для выгрузки зет отчета на сервер. Касса выключится самостоятельно."
+

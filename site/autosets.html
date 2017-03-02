@@ -1,0 +1,85 @@
+<form  method='POST' action='/sets/autosets'>
+<table class="marg">
+    <tr> <td class="flame">  Текущий принтер:       </td><td class="ice bold">   %d_name%           </td> </tr>
+    <tr> <td class="flame">  Тип принтера:          </td><td class="ice bold">   %d_devtype%        </td> </tr>
+    <tr> <td class="flame">  Скорость:              </td><td class="ice bold">   %d_speed%          </td> </tr>
+    <tr> <td class="flame vcenter">  Текущий сканнер:       </td>
+            <td>   
+                <select name="dev_scanner" class="itext black smallest" >
+                %select_scanner%
+                </select>
+            </td> </tr>
+
+    <tr>
+        <td class="flame vcenter smallest">  Печатать заголовок:  </td><td class="ice bold">   
+            <select class="itext black small" name="d_printsh">
+                <option value="0" %d_printsh_0%>Нет</option>
+                <option value="1" %d_printsh_1%>Да</option>
+            </select>
+        </td> 
+    </tr>
+    <tr>
+        <td class="flame vcenter smallest"> Переводить на летнее/зимнее время :  </td><td class="ice bold">   
+            <select class="itext black small" name="d_summertm">
+                <option value="0" %d_summertm_0%>Нет</option>
+                <option value="1" %d_summertm_1%>Да</option>
+            </select>
+        </td> 
+    </tr>
+    <tr>
+        <td class="flame vcenter smallest"> Автоматическое обнуление наличности :  </td><td class="ice bold">   
+            <select class="itext black small" name="d_autonull">
+                <option value="0" %d_autonull_0%>Нет</option>
+                <option value="1" %d_autonull_1%>Да</option>
+            </select>
+        </td> 
+    </tr>
+    <tr>
+        <td class="flame vcenter smallest"> Автоматическое открытие ящика :  </td><td class="ice bold">   
+            <select class="itext black small " name="d_autobox">
+                <option value="0" %d_autobox_0%>Нет</option>
+                <option value="1" %d_autobox_1%>Да</option>
+            </select>
+        </td> 
+    </tr>
+    <tr>
+        <td class="flame vcenter smallest"> Использовать нож :  </td><td class="ice bold">   
+            <select class="itext black small " name="d_autocut">
+                <option value="0" %d_autocut_0%>Нет</option>
+                <option value="1" %d_autocut_1%>Да</option>
+            </select>
+        </td> 
+    </tr>
+    <tr>
+        <td class="flame vcenter smallest"> Игнорировать ошибки :  </td><td class="ice bold">   
+            <select class="itext black small " name="d_ignore">
+                <option value="0" %d_ignore_0%>Нет</option>
+                <option value="1" %d_ignore_1%>Да</option>
+            </select>
+        </td> 
+    </tr>
+    <tr>
+        <td class="flame vcenter smallest"> Печатать номер чека :  </td><td class="ice bold">   
+            <select class="itext black small " name="d_ncheck">
+                <option value="0" %d_ncheck_0%>Нет</option>
+                <option value="1" %d_ncheck_1%>Да</option>
+            </select>
+        </td> 
+    </tr>
+    <tr>
+        <td class="flame vcenter smallest"> Работа с ОФД :  </td><td class="ice bold">   
+            <select class="itext black small " name="d_ofd">
+                <option value="0" %d_ofd_0%>Нет</option>
+                <option value="1" %d_ofd_1%>Да</option>
+            </select>
+        </td> 
+    </tr>
+    <tr>
+        <td> <button class="but small" name="cancel" value="cancel" onclick="ed_sets.hidden=true;return false;" >Закрыть</button></td>
+        <td> <button class="but wall small" name="save" value="save" >Сохранить</button></td>
+    
+    </tr>
+            
+</table>
+</form>
+

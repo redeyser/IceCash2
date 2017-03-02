@@ -1,0 +1,69 @@
+<div class='window w800 white'>
+    <form name='edprint' method='POST' enctype="multipart/form-data" action=''/>
+    <span class='green'>ID:%id% MODEL: </span><input class='itext red' size=14 name='vendor' id='vendor' type=text value='%vendor%' />
+    <span class='green'>wchar: </span><input class='itext red' size=3 name='width' id='width' type=text value='%width%' />
+    <span class='green'>wpixel: </span><input class='itext red' size=3 name='dpi' id='dpi' type=text value='%dpi%' />
+    
+    <table>
+    <tr><td style='vertical-align:top;width:30%'> 
+        Наименование:<br>
+        <input class='itext green' size=10 id='prname' name='name' type=text value='%name%' />
+        <br>
+        Тип соединения:<br>
+        <select name="type_connect" id="type_connect" class="itext green" onchange="viewconnect(this);">
+        %type_connect%
+        </select>
+        <br>
+        Тип команд: <br>
+        <select name="type_device" id='type_device' class="itext green">
+        %type_device%
+        </select>
+    </td><td>
+        Устройство:
+        <select name="device" class="itext green">
+        %device%
+        </select><br>
+        speed<input class='itext red' size=4 name='speed' id='speed' type=text value='%speed%' />
+        <div id="tnet" %nethidden%>
+            ip:<input id="tnet" class='itext green' size=10 name='address' type=text value='%address%'/>
+            port:<input class='itext green' size=5 name='port' type=text value='%port%' /><br>
+        </div>
+        charset_driver:<input class='itext red' size=10 name='charset_driver' type=text value='%charset_driver%' /><br>
+        charset_device:<input class='itext green' size=3 name='charset_device' type=text value='%charset_device%' /><br>
+        usr/adm pass:<input class='itext red' size=4 name='usr_pass' type=text value='%usr_pass%' />
+        <input class='itext red' size=4 name='adm_pass' type=text value='%adm_pass%' />
+    </td><td>
+        <table id="tusb" %usbhidden% >
+        <tr><td>interface:</td><td><input class='itext red' size=5 name='interface' id='_interface' type=text value='%interface%' /></td></tr>
+        <tr>
+        <td>
+        <input class='itext' name='id' type=hidden value='%id%' />
+        id_vendor:</td><td><input class='itext red' size=5 name='id_vendor' id='id_vendor' type=text value='%id_vendor%' /></td></tr>
+        <tr><td>id_product:</td><td><input class='itext red' size=5 name='id_product' id='id_product' type=text value='%id_product%' /></td></tr>
+        <tr><td>byte01:</td><td><input class='itext red' size=4 name='byte1' id='byte1' type=text value='%byte1%' /></td></tr>
+        <tr><td>byte02:</td><td><input class='itext red' size=4 name='byte2' id='byte2' type=text value='%byte2%' /></td></tr>
+        </table>
+    </td></tr>
+    <tr><td colspan=3>
+    Описание:<br>
+    <textarea class='itext green' name='description' cols=80 rows=3>%description%</textarea>
+    </td>
+    </tr>
+    <tr><td>
+    <input class='but' name="edpr" style='margin-top:5px' type='submit' value='Сохранить'/>
+    <input class='but' name="delpr" style='margin-top:5px' type='submit' value='Удалить'/>
+    </td> <td>
+    <input class='but' name="codetest" style='margin-top:5px' type='submit' value='Тест кодировок'/>
+    <button class='but' name='_scan' onclick="lsusb.innerHTML=_postdata('/printers',['_scan'],['1']);lsusb.hidden=false;return false;" style='margin-top:5px' >Сканировать</button><br>
+    <button class='but' name='kkmstatus' onclick="get_kkmstatus();return false;" style='margin-top:5px' >Статус</button>
+    <button class='but' name='kkmtabval' onclick="get_kkmtabstr();return false;" style='margin-top:5px' >Текст</button>
+    <button class='but' name='kkmtabval' onclick="get_kkmtabval();return false;" style='margin-top:5px' >Таблицы</button>
+    <button class='but' name='kkmtabval' onclick="set_kkmcurtime();return false;" style='margin-top:5px' >=Время</button>
+    <button class='but' name='kkmtabval' onclick="set_kkmcurdate();return false;" style='margin-top:5px' >=Дата</button>
+    <button class='but' name='kkmtabval' onclick="set_kkmrenull();return false;" style='margin-top:5px' >=ТехноОбнуление</button>
+    <button class='but' name='kkmtabval' onclick="set_kkmport();return false;" style='margin-top:5px' >=Установить скорость</button>
+    </td>
+    </tr>
+    </table>
+    </form>    
+</div>

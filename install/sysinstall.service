@@ -1,0 +1,19 @@
+[Unit]
+Description=dIceServ
+After=syslog.target
+After=network.target
+After=mysql.service
+Requires=mysql.service
+
+[Service]
+Type=forking
+WorkingDirectory=/home/iceserv/dIceServ
+
+User=root
+Group=root
+
+ExecStart=/bin/sh /home/iceserv/dIceServ/start.sh
+TimeoutSec=10
+
+[Install]
+WantedBy=multi-user.target 

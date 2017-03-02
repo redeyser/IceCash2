@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dtprint>
+<auth>dtpadm</auth>
+<printer>sam.net</printer>
+<cmdlist>
+    <cmd>
+        <command>set_style</command>
+        <param>bold;2x;;;</param>
+    </cmd>
+    <cmd>
+        <command>print_text</command>
+        <param>
+        
+        
+        THE END
+        
+        
+        </param>
+    </cmd>
+    <cmd>
+        <command>cut</command>
+        <param></param>
+    </cmd>
+</cmdlist>
+</dtprint>

@@ -1,0 +1,148 @@
+<div class="window w33 padd marg">
+    <span class='flame big'>Z-отчеты</span>
+    <table class="norm">
+        <tr class="ice sel" onclick='doot(0);'><td>Текущий месяц</td></tr>
+        <tr class="ice sel" onclick='doot(1);'><td>Предыдущий месяц</td></tr>
+        <tr class="ice bold sel" onclick='_relocate("/ot");'><td>Отчеты</td></tr>
+        <tr class="ice bold sel" onclick='_relocate("/");'><td>В начало</td></tr>
+    </table>
+
+</div>
+<div id="ot_cont" class="window center wmaxcenter w90 h90 norm" hidden>
+    <div id="otcont" class="norm" >  </div>
+    <button id="btn" class='but norm marg rtext' onclick='ot_cont.hidden=true;otcont.innerHTML="";'>Закрыть</button>
+</div>
+<div id="z_cont" class="windowinfo center wcenter w80 h80 norm" hidden>
+    <div id="zcont" class="norm" >  </div>
+    <button id="btnzc" class='but norm marg rtext' onclick='z_cont.hidden=true;zcont.innerHTML="";'>Закрыть</button>
+    <button id="btnxml" class='but norm marg rtext' onclick='doxml();'>XML</button>
+    <button id="btnrecalc" class='but norm marg rtext' onclick='dorecalc();z_cont.hidden=true;'>Пересчитать</button>
+</div>
+<script>
+    function td(_id,_class,_on,_c,asfloat){
+        if (asfloat){
+            _c=parseFloat(_c).toFixed(2);
+        }
+        return "<td id='"+_id+"' class='"+_class+"' "+_on+" >"+_c+"</td>";
+    }
+    function ft(s,cl){
+        return "<th class='f70 rtext "+cl+"'>"+s+"</th>";
+    }
+    function th(s){
+        return "<th class='f70'>"+s+"</th>";
+    }
+    function dorecalc(){
+        r=_getdata("/ot/Zet/recalc?id="+selected_id);
+    }
+    function doxml(){
+        r=_getdata("/ot/Zet/xml?id="+selected_id);
+        zcont=document.getElementById("zcont");
+        c="<div class='infoline center'>XML отчет</div>";
+        zcont.innerHTML=c+"<textarea class='itext ice' style='width:90%;' rows=25>"+r+"</textarea>";
+    }
+    function showcont(idd){
+        selected_id=idd;
+        r=_getdata("/ot/Zet?id="+idd);
+        z_cont=document.getElementById("z_cont");
+        zcont=document.getElementById("zcont");
+        json=JSON.parse(r);
+        content="";
+        arr=[0,12,2,4,6,7,8,9,10,11];
+        fl =[0,0,0,0,1,1,1,1,1,1];
+        cls=["bold","","bold","center","ice rtext","black rtext","ice rtext","warn rtext","green rtext","warn rtext"];
+        for (var l in json){
+            d=json[l];
+            idd=d['id'];
+            ln="";
+            for (var i in arr){
+                if (fl[i]==1){
+                    if (i==5){ f=3;} else{ f=2;}
+                    v=parseFloat(d[arr[i]]).toFixed(f);
+                }else{
+                    v=d[arr[i]];
+                }
+                cl=cls[i];
+                ln+=td("",cl,"",v);
+            }
+            line="<tr class='f70 sel'>"+ln+"</tr>";
+            content+=line;
+        }
+        _th="<tr>"+th("#")+th("Товар")+th("S")+th("Код")+th("Цена")+th("Кол")+th("Сумма")+th("Дисконт")+th("Бонус+")+th("Бонус-")+"</tr>";
+        _ft="";
+        c="<div class='infoline center'>Содержание Z-отчета</div>"+
+        "<div class='scroll' style='position:relative;height:80%'>"+
+        "<table class='tbm small black' style='margin-left:2%;width:95%'>"+_th+"<tbody>"+content+"</tbody"+_ft+"</table></div>";
+        zcont.innerHTML=c;
+        z_cont.hidden=false;
+        btnzc.focus();
+
+    }
+    function doot(type){
+        r=_getdata("/ot/Zet?month="+type);
+        if (r==0){
+            return;
+        }
+        ot_cont=document.getElementById("ot_cont");
+        otcont=document.getElementById("otcont");
+        json=JSON.parse(r);
+        c=0;
+        content="";
+        _vir=0;
+        _sum_nal=0;
+        _sum_bnal=0;
+        _sum_ret=0;
+        _discount=0;
+        _bonus_discount=0;
+        _bonus=0;
+        _c_sale=0;
+        _c_return=0;
+        for (var l in json){
+            d=json[l];
+            idd=d['id'];
+            ln="";
+            ln+=td("zet_"+idd,"flame small","",idd);
+            ln+=td("zet_"+idd,"vcenter bold f70","",d['date']);
+            ln+=td("zet_"+idd,"ice small rtext f70","",d['vir'],true);
+            ln+=td("zet_"+idd,"ice small rtext f70","",d['summa_nal'],true);
+            ln+=td("zet_"+idd,"ice small rtext f70","",d['summa_bnal'],true);
+            ln+=td("zet_"+idd,"warn small rtext f70","",d['discount'],true);
+            ln+=td("zet_"+idd,"warn small rtext f70","",d['summa_ret'],true);
+            ln+=td("zet_"+idd,"warn small rtext f70","",d['bonus_discount'],true);
+            ln+=td("zet_"+idd,"green small rtext f70","",d['bonus'],true);
+            ln+=td("zet_"+idd,"small center","",d['c_sale']);
+            ln+=td("zet_"+idd,"small center","",d['c_return']);
+
+            _vir+=parseFloat(d['vir']);
+            _sum_ret+=parseFloat(d['summa_ret']);
+            _sum_nal+=parseFloat(d['summa_nal']);
+            _sum_bnal+=parseFloat(d['summa_bnal']);
+            _discount+=parseFloat(d['discount']);
+            _bonus_discount+=parseFloat(d['bonus_discount']);
+            _bonus+=parseFloat(d['bonus']);
+            _c_sale+=parseFloat(d['c_sale']);
+            _c_return+=parseFloat(d['c_return']);
+
+            line="<tr class='sel' onclick='showcont("+idd+");'>"+ln+"</tr>";
+            content+=line;
+        }
+        _th="<tr>"+th("#")+th("Дата")+th("Выручка")+th("Налич")+th("Безнал")+th("Дисконт")+th("Возвраты")+th("-Бонус")+th("+Бонус")+th("Чеков")+th("Возвр")+"</tr>";
+        _ft="<tr>"+th("")+th("")
+            +ft(_vir.toFixed(2),"ice")
+            +ft(_sum_nal.toFixed(2),"ice")
+            +ft(_sum_bnal.toFixed(2),"ice")
+            +ft(_discount.toFixed(2),"warn")
+            +ft(_sum_ret.toFixed(2),"warn")
+            +ft(_bonus_discount.toFixed(2),"warn")
+            +ft(_bonus.toFixed(2),"green")
+            +ft(_c_sale,"center")
+            +ft(_c_return,"center")
+            +"</tr>";
+        c="<div class='infoline center'>Z-отчеты</div>"+
+        "<div class='scroll' style='position:relative;height:80%'>"+
+        "<table class='tb small black' style='margin-left:2%;width:95%'>"+_th+"<tbody>"+content+"</tbody"+_ft+"</table></div>";
+        otcont.innerHTML=c;
+        ot_cont.hidden=false;
+        btn.focus();
+    }
+</script>
+

@@ -1,0 +1,23 @@
+<table>
+<tr>
+<td class="w33">
+<div class="window padd marg">
+    <span class='flame big'>Документация</span>
+    <table class="norm">
+        <tr class="black sel" onclick='showdoc("help_keys");'><td>Регистрация</td></tr>
+        <tr class="black sel" onclick='showdoc("help_egais");'><td>Егаис</td></tr>
+        <tr class="black sel" onclick='showdoc("help_ot");'><td>Отчеты</td></tr>
+        <tr class="ice bold sel" onclick='_relocate("/");'><td>В начало</td></tr>
+    </table>
+
+</div>
+</td>
+<td>
+<div id="doc" class="wmaxcenter windowinfo padd marg w90 h90" hidden>
+    <div id="doctext" class='wall h80 marg scroll'>
+    </div>
+    <button class='but norm marg ltext' onclick='doc.hidden=true;'>Закрыть</button>
+</div>
+</td>
+</tr>
+</table>

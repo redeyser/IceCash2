@@ -1,0 +1,62 @@
+<form  method='POST' action='/sets_driver'>
+    <table class="marg small">
+        <tbody>
+        <tr>
+            <td class="vcenter flame bold">Принтер:</td>
+            <td class="vcenter">
+                <select class='itext warn small' name="d_name" id="d_name" onchange='ch_dev(this.value);'>
+                    %printers_select%
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="flame">Тип принтера: </td>           <td class="ice bold">%type_device%</td>
+        </tr>
+        <tr>
+            <td class="flame">Модель: </td>           <td class="ice bold">%vendor%</td>
+        </tr>
+        <tr>
+            <td class="flame">Ширина (симв): </td>    <td class="ice">%width%</td>
+        </tr>
+        <tr>
+            <td class="flame">Ширина (точ): </td>     <td class="ice">%dpi%</td>
+        </tr>
+        <tr>
+            <td class="flame">Скорость: </td>         <td class="ice">%speed%</td>
+        </tr>
+        <tr>
+            <td class="flame vcenter bold">Пароль польз.: </td>         
+            <td><input size=5 class="itext ice small" name="usr_pass" value=%usr_pass% /></td>
+        </tr>
+        <tr>
+            <td class="flame vcenter bold">Пароль админ.: </td>
+            <td><input size=5 class="itext ice small" name="adm_pass" value=%adm_pass% /></td>
+        </tr>
+        <tr>
+            <td>
+                <button class="but small" name="cancel" value="cancel" onclick="ed_drv.hidden=true;return false;" >Отменить</button>
+            </td>
+            <td>
+                <button class="but small wall" name="save" value="save" onclick="return confirm('Сохранить?');" >Сохранить</button>
+            </td>
+        </tr>
+        <tr>
+            <td colspan=2>
+                <button class="but small wall" name="auto" value="auto" onclick="cmd_autocreate();return false;" >Автоматический поиск принтеров</button>
+            </td>
+        </tr>
+        <tr><td>
+<table class="wall small" style="margin:5px;">
+    <tr> <td class="black" colspan=2>   %result%           </td> </tr>
+    <tr> <td class="flame">  Номер:          </td><td class="ice bold">   %dev_id%            </td> </tr>
+    <tr> <td class="flame">  Время:          </td><td class="ice bold">   %dt_date% %dt_time% </td> </tr>
+    <tr>
+        <td colspan=2>
+            <button class="but small" name="sync" value="sync" onclick="cmd_prn_setcurdatetime();return false;" >Синхронизировать время</button>
+        </td>
+    </tr>
+</table>
+</td></tr>
+        </tbody>
+    </table>
+</form>

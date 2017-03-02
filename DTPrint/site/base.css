@@ -1,0 +1,147 @@
+/* CSS WEB SERVICE */
+
+h1 {
+    color:#a0a0a0;
+}
+
+
+body {
+        margin: 0;
+        background: #303030;
+        color:#a0a0a0;
+        margin:20px;
+    }
+a {  
+     text-decoration:none;
+     margin-right:5px;
+     margin-top:5px;
+     padding:5px;
+     color:#a0a0a0;
+     background:#101010;
+     border: 1px solid #000;
+     border-top:1px solid #606060;
+     border-left:1px solid #606060;
+     border-radius:5px;
+}
+a:hover {  
+    color:#70e080;
+    text-shadow: 0px 0px 10px #006000;
+}
+
+.leftstr, .rightstr {
+    float: left; 
+    width: 25%; 
+}
+
+.rightstr {
+    text-align: right; 
+}
+.backlight {
+    background:#333;
+}
+.tb td {
+    padding:3px;
+    border-style:solid;
+    border-collapse:separate;
+    border: 1px solid #303030;
+    border-bottom:1px solid #606060;
+    border-right:1px solid #606060;
+    background-color:#000;
+}
+.tb td:hover {
+    background-color:#101010;
+}
+.tb th {
+    padding:3px;
+    border-style:solid;
+    border-collapse:separate;
+    border: 1px solid #000;
+    background-color:#303030;
+}
+.window {
+    background: #404040;
+    border: 1px solid #303030;
+    border-top:1px solid #505050;
+    border-left:1px solid #505050;
+    border-radius:5px;
+    box-shadow:5px 5px 10px 0px #000;
+    margin-right:10px;
+    margin-top:10px;
+    padding:10px;
+}
+.menu {
+    margin: 0px;
+    padding: 5px;
+    width:150px;
+    text-align:left;
+    font-size:12pt;
+    min-height:40px;
+}
+.w800 {
+    width: 800px;
+}
+.w400 {
+    width: 400px;
+}
+.w200 {
+    width: 200px;
+}
+.red {
+    color:#30c0a0;
+    text-shadow: 0 0px 5px #000080;
+}
+.green {
+    color:#30c070;
+    text-shadow: 0 0px 5px #00a000;
+}
+.white {
+    color:#a0a0a0;
+}
+.big {
+    font-size:18pt;
+}
+.small {
+    font-size:8pt;
+}
+.marg {
+    margin:20px;
+}
+.scroll {
+overflow:auto;
+}
+.padd {
+   padding:10px;
+}
+.vcenter {
+   vertical-align:middle;
+}
+.but:hover {
+    text-decoration: none;
+    color:#70e080;
+    text-shadow: 0px 0px 10px #006000;
+}
+.but {
+     color:#d0d0d0;
+     background:#101010;
+     border: 1px solid #000;
+     border-top:1px solid #606060;
+     border-left:1px solid #606060;
+     border-radius:5px;
+     text-shadow: 0px 0px 10px #000000;
+     padding:2px;
+}
+.itext {
+    border-radius:5px;
+    background:#000;
+    border: 1px solid #303030;
+    border-bottom:1px solid #606060;
+    border-right:1px solid #606060;
+    border-radius:5px;
+    padding:2px;
+    margin:5px;
+    font-size: 10pt;
+}
+.itext:hover {
+    background-color:#101010;
+}
+

@@ -1,0 +1,481 @@
+Author: Wander Lairson Costa
+    Merge pull request #125 from swinman/master
+    
+    make find and find_descriptor easier to understand
+Author: Walker Inman
+    make find and find_descriptor easier to understand
+    
+    all( iter_ ) is more explicit than reduce( lambda x, y:x and y, iter_, True ),
+    especially since reduce is no longer a builtin.  Use all instead of
+    complicated multi-line reduce statement for easier code comprehension.
+    Also, introduce _all interop since all was introduced in 2.5
+
+Author: Wander Lairson Costa
+    Merge pull request #124 from roques/autoclaim
+    
+    ctrl_transfer: claim receiving interface for non-VENDOR transfers
+Author: Wander Lairson Costa
+    Merge pull request #119 from M3gaFr3ak/patch-1
+    
+    Fix OpenUSB link
+Author: Wander Lairson Costa
+    Fix braino in faq doc.
+
+Author: Christian von Roques
+    ctrl_transfer: claim receiving interface for non-VENDOR transfers
+    
+    This matches what the Linux kernel does in check_intf() when called from check_ctrlrecip()
+    https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/usb/core/devio.c
+    and thus helps to prevent annoying warnings from the kernel.
+    
+    The previous code did this for STANDARD type transfers already, but not for CLASS.
+
+Author: wander
+    Added a new FAQ doc.
+
+Author: Leon Loeser
+    Fix OpenUSB link
+    
+    The link for OpenUSB doesn't work. It says "Page not found" on sourceforge. I replaced it with the link to the OpenUSB sourceforge wiki
+Author: Wander Lairson Costa
+    Merge pull request #107 from rabryan/master
+    
+    add virtual com port utility to tools
+Author: Richard Bryan
+    adds a virtual com port utility to tools
+
+Author: Wander Lairson Costa
+    Merge pull request #113 from AlanJAS/master
+    
+    prevent get_device_speed error on libusb1
+Author: Alan Aguiar
+    prevent get_device_speed error on libusb1
+
+Author: Wander Lairson Costa
+    Merge pull request #112 from karlp/pulls/tutorial-config-setting
+    
+    doc: tutorial fix typo in cfg setting
+Author: Karl Palsson
+    doc: tutorial fix typo in cfg setting
+    
+    Clarify the different methods of setting the configuration.
+
+Author: Wander Lairson Costa
+    Give a readable error when a invalid configuration is passed.
+    
+    closes #111.
+
+Author: Wander Lairson Costa
+    Make PyUSB thread safe.
+    
+    We synchronize every ResourceManager method and this should be enough to
+    guarantee library thread safety.
+
+Author: Wander Lairson Costa
+    Merge pull request #109 from AlanJAS/master
+    
+    fix get_device_speed for old libusb versions
+Author: Alan Aguiar
+    fix get_device_speed for old libusb versions
+
+Author: Wander Lairson Costa
+    Update docs to include pip install.
+    
+    closes #82
+    closes #92
+
+Author: Wander Lairson Costa
+    Create a specialized class for "no backend" exception.
+    
+    Now when no backend is found, the exception NoBackendError is raised,
+    allowing the application to handle it properly.
+    
+    closes #95.
+
+Author: Wander Lairson Costa
+    Merge branch 'iso-win32'
+    
+    closes #61.
+
+Author: Wander Lairson Costa
+    Add environment variable to control isochronous tests.
+    
+    Isochronous tests fail in Windows running under VirualBox, so we allow
+    them to be disabled.
+
+Author: Wander Lairson Costa
+    Implement isochronous transfers for libusb-win32.
+    
+    libusb-win32 supports asynchronous isochronous transfers. We check in
+    the libubs0 backend if the isochronous related functions are available
+    and, if so, implement the iso transfer functions.
+
+Author: Wander Lairson Costa
+    Merge pull request #104 from AndreySV/fix-setConfiguration-setAltInterface
+    
+    fix 0.x compatibility issue in functions setConfiguration() and setAltInterface()
+Author: Wander Lairson Costa
+    Merge pull request #105 from jcflack/metadata
+    
+    For discussion anyway, one attempt at some relevant trove classifiers.
+Author: Andrey Skvortsov
+    cleanup code in claimInterface()
+    
+    cleanup code to make argument handling consistent with functions
+    setConfiguration, setAltInterface and detachKernelDriver.
+
+Author: Andrey Skvortsov
+    fixes 0.x compatibility for detachKernelDriver()
+    
+    Argument interface can be interface number or an Interface object, but
+    if interface is Interface object following trace is printed:
+    
+    File "./mp709.py", line 102, in open
+      self.handle.detachKernelDriver(self.intf)
+    File "/home/andrey/tmp/pyusb/usb/legacy.py", line 309, in detachKernelDriver
+      self.dev.detach_kernel_driver(interface)
+    File "/home/andrey/tmp/pyusb/usb/core.py", line 1047, in detach_kernel_driver
+      interface)
+    File "/home/andrey/tmp/pyusb/usb/backend/libusb1.py", line 894, in detach_kernel_driver
+      _check(self.lib.libusb_detach_kernel_driver(dev_handle.handle, intf))
+    ctypes.ArgumentError: argument 2: <type 'exceptions.TypeError'>: wrong type
+    
+    This patch adds code that converts Interface object to interface number.
+
+Author: Andrey Skvortsov
+    fixes 0.x compatibility for setAltInterface()
+    
+    If pyusb-0.x code is used and
+    DeviceHandle.setConfiguration(self.dev.configurations[0])
+    is called, the following trace is printed:
+    
+      self.handle.setAltInterface(self.intf)
+    File "/home/andrey/tmp/pyusb/usb/legacy.py", line 267, in setAltInterface
+      self.dev.set_interface_altsetting(self.__claimed_interface, alternate)
+    File "/home/andrey/tmp/pyusb/usb/core.py", line 872, in set_interface_altsetting
+      self._ctx.managed_set_interface(self, interface, alternate_setting)
+    File "/home/andrey/tmp/pyusb/usb/core.py", line 177, in managed_set_interface
+      self.managed_claim_interface(device, i)
+    File "/home/andrey/tmp/pyusb/usb/core.py", line 147, in managed_claim_interface
+      self.backend.claim_interface(self.handle, i)
+    File "/home/andrey/tmp/pyusb/usb/backend/libusb1.py", line 803, in claim_interface
+      _check(self.lib.libusb_claim_interface(dev_handle.handle, intf))
+    ctypes.ArgumentError: argument 2: <type 'exceptions.TypeError'>: wrong type
+    
+    If legacy function DeviceHandle.setAltInterface(self.intf) is
+    called, function _ResourceManager.managed_set_configuration 'config'
+    parameter's type will be <class 'usb.legacy.Interface' instead of
+    'int'.
+
+Author: Andrey Skvortsov
+    fixes 0.x compatibility for setConfiguration()
+    
+    If pyusb-0.x code is used and
+    DeviceHandle.setConfiguration(self.dev.configurations[0])
+    is called, the following trace is printed:
+    
+    File "./mp709.py", line 109, in open
+      self.handle.setConfiguration(self.dev.configurations[0])
+    File "/home/andrey/tmp/pyusb/usb/legacy.py", line 259, in setConfiguration
+      self.dev.set_configuration(configuration)
+    File "/home/andrey/tmp/pyusb/usb/core.py", line 839, in set_configuration
+      self._ctx.managed_set_configuration(self, configuration)
+    File "/home/andrey/tmp/pyusb/usb/core.py", line 129, in managed_set_configuration
+      self.backend.set_configuration(self.handle, cfg.bConfigurationValue)
+    AttributeError: 'NoneType' object has no attribute 'bConfigurationValue'
+    
+    The problem is here, that in function
+    _ResourceManager.managed_set_configuration(self, device, config)
+    'config' parameter has type 'usb.legacy.Configuration' from legacy code.
+    But the function (managed_set_configuration) expects  types 'usb.core.Configuration' or 'int'.
+    With this patch  managed_set_configuration gets 'int' configuration
+    number from legacy code and util.find_descriptor(device, bConfigurationValue=config)
+    finds and returns corresponding 'usb.core.Configuration' for further
+    handling.
+
+Author: Chapman Flack
+    First crack at some relevant setup.py classifiers.
+
+Author: Wander Lairson Costa
+    Merge pull request #99 from jcflack/strings
+    
+    Handling device strings; making device's LANGID list accessible.
+Author: Chapman Flack
+    Expose device's LANGIDs; suppress missing strings.
+    
+    When a device does not have a certain string (e.g. serial number),
+    it supplies zero as the index for that string. Zero is never the
+    index of a real string, only a signal not to request it. A request
+    for string index zero has a special meaning, to find the list of
+    languages the device strings are offered in. When code requested a
+    string without testing the index for zero, it could get back a bogus
+    string like a Cyrillic Љ character, as a result of trying to interpret
+    the language ID codes as Unicode characters.
+    
+    Now get_string simply returns None if passed an index of zero.
+    
+    At the same time, there was no simple way for calling code to examine
+    the supported language IDs for the device. The spec forbids sending
+    string requests for a language the device does not support, so the
+    supported IDs should be easy for the caller to check. Now there is
+    a langids property on Device.
+    
+    If a device has no strings, the spec also allows it to have no langids
+    list. The device might reply with an empty list, or fail the request
+    with a backend pipe error. The latter is caught in the property accessor
+    on core.Device, rather than in util.get_langids, because of an order
+    constraint between when core imports util and when it defined USBError.
+    
+    The string property accessors on Device normally call get_string once
+    and cache the result, but if the index is zero (so the result is None)
+    they will end up calling get_string every time ... but all it does in
+    that case is if 0 == index: return None so the cost is negligible and
+    the code stays simple.
+
+Author: Wander Lairson Costa
+    Merge pull request #98 from jcflack/housekeeping
+    
+    Conform _interop to the README goal to support 2.4+.
+Author: Chapman Flack
+    Conform _interop to README's goal to support 2.4+.
+    
+    README.rst was saying 2.4+ should be supported but some vestiges from 2.3
+    were in _interop.py.
+    
+    Wherever used (which was only in legacy.py), _sorted and _groupby are
+    now replaced by their native counterparts.
+    
+    http://sourceforge.net/p/pyusb/mailman/message/34078264/
+    Two commits formerly pushed to github, rebased at upstream's request.
+
+Author: Wander Lairson Costa
+    Merge pull request #97 from jcflack/solaris
+    
+    Support the libusb0 that ships in Solaris
+Author: Chapman Flack
+    Add a hardcoded PATH_MAX for Solaris.
+    
+    The preceding commit would make it work in most cases, but perhaps it
+    is best not to rely on pathconf when the value from limits.h is known.
+    In theory, pathconf could return a different value depending on the
+    filesystem where . is, but the fixed value in limits.h will be what
+    libusb was compiled with.
+
+Author: Chapman Flack
+    Avoid hardcoding the index for _PC_PATH_MAX.
+    
+    POSIX explicitly leaves the values of these named constants unspecified.
+    The value 4 is right for linux but wrong for solaris. Who knows what it is
+    in another OS. The result of having the wrong index is the wrong value
+    gets queried, making the ctypes structures the wrong sizes and causing
+    pyusb to fail in perplexing ways.
+    
+    It's better to use the name ('PC_PATH_MAX') and allow Python to use the
+    correct index for the platform.
+
+Author: Wander Lairson Costa
+    Merge pull request #96 from MattHeard/patch-1
+    
+    Fixed minor docstring typo.
+Author: Matt
+    Fixed minor docstring typo
+Author: Wander Lairson Costa
+    Merge pull request #93 from damib/master
+    
+    Claim interface only for standard control transfer requests.
+Author: Damiano Bortolato
+    Claim interface only for standard control transfer requests.
+    
+    wIndex is the interface number to be claimed only for
+    standard request types. For example Silicon Labs cp2103 defines
+    a vendor control transfer to set some GPIO pins though wIndex
+    parameter (se AN571 page 17).
+
+Author: Wander Lairson Costa
+    Add script to setup python test environment.
+
+Author: Wander Lairson Costa
+    Thanks to Maximilian Köhl and Matthew Chan.
+    
+    Maximilian Köhl.: PR #90
+    Matthew Chan: PR #91
+
+Author: Wander Lairson Costa
+    Merge pull request #91 from tuzzer/master
+    
+    util: change tostring() to tobytes() when running with Python 3.2+
+Author: tuzzer
+    util: change tostring() to tobytes() when running with Python 3.2+
+    
+    This removes the DeprecationWarning that warns that tostring() is
+    obsolete when running with Python 3.2+
+
+Author: Wander Lairson Costa
+    Merge pull request #90 from koehlma/master
+    
+    libusb1: fix seg fault when get_device_speed is called
+Author: Maximilian Köhl
+    libusb1: fix seg fault when get_device_speed is called
+
+Author: Wander Lairson Costa
+    core: Fix seg fault when dispose is called after device disconnection.
+    
+    When dispose is called after the device is diconnected,
+    release_interface might fail (see commit 5e9ef1536), then the interface
+    stays in the claimed interfaces set. When the device is destroyed, its
+    __del__ method will call dispose again and, since the interface is
+    still marked as claimed, a new call to release_interface will be made
+    with an invalid device handle, causing a segmentation fault.
+    
+    We fix that by always removing the interface from the claimed set.
+    
+    closes #89.
+
+Author: Wander Lairson Costa
+    Fixed: Add speed property to all backends.
+
+Author: Wander Lairson Costa
+    Thanks to Deliang Fan for PR #88.
+
+Author: Wander Lairson Costa
+    Merge pull request #88 from DeliangFan/speed
+    
+    Support for getting usb device speed
+Author: fandeliang
+    Support for getting usb device speed
+    
+    In some cases, we need to get the usb device speed type to attach
+    it to specific usb controller. Fortunately, it's easy to get usb
+    device speed information with libusb1.0.
+
+Author: Wander Lairson Costa
+    core: Handle exceptions when releasing the interfaces.
+    
+    At object destruction, claimed interfaces are released. If the device
+    is disconnected, the call to release_interface may fail and raise an
+    exception.
+    
+    closes #84.
+
+Author: Wander Lairson Costa
+    libusb1: fix hanging when the device is disconnected in a iso transfer.
+    
+    If the device is disconnected when a isochronous transfer is ongoing,
+    it might raise an exception in the callback and the 'callback done'
+    signaling flag is never set. This causes the program to hang
+    forever.
+    
+    We move the error handling to the caller function, after the callback
+    returns. In this way, the exception is raised in the main thread and
+    client software is notified about the exceptional situation.
+    
+    closes #85.
+
+Author: Wander Lairson Costa
+    Braino.
+
+Author: Wander Lairson Costa
+    Use libusb_strerror when the function is available.
+    
+    libusb_strerror returns a string containing the error message for the
+    given error code. When the function is not available, we fallback to
+    our own internal error code mapping strategy.
+    
+    closes #69.
+
+Author: Wander Lairson Costa
+    Implement "backend" property.
+    
+    The "backend" property returns the backend used by the device.
+    
+    closes #71.
+
+Author: Wander Lairson Costa
+    Merge pull request #80 from 'ecejeff/master'.
+    
+    closes #80.
+
+Author: Wander Lairson Costa
+    Thanks Jeffrey Nichols for the port numbers patch.
+
+Author: Jeffrey Nichols
+    Support for port_numbers hierarchy tuple with libusb1.
+
+Author: Wander Lairson Costa
+    Merge pull request #78 from 'dywisor/master'.
+    
+    closes #66 closes #78.
+
+Author: Wander Lairson Costa
+    Thanks to André Erdmann for #66 fix.
+
+Author: André Erdmann
+    finalize objects before exiting
+    
+    Fixes #66 ("Exception when script using pyusb finishes").
+    
+    See previous commit for details.
+
+Author: André Erdmann
+    add object finalizer class
+    
+    Starting with (C)Python 3.4, the GC features "Safe object finalization" [0],
+    which doesn't work nicely with pyusb's object structure.
+    
+    Required globals / modules may already have been deleted (set to None)
+    when an object's __del__() method gets called [1], which
+    randomly breaks libusb calls etc. when calling sys.exit().
+    
+    Use the atexit module to solve this (indirectly via weakref.finalize()).
+    
+    This commit adds a class that takes care of object finalization.
+    Classes/objects can adopt this functionality by inheriting
+    AutoFinalizedObject and renaming their __del__() method to _finalize_object().
+    
+    Shouldn't break existing use cases, but adds a few layers of indirection.
+    A __del__() call gets processed as follows:
+    
+      __del__() -> finalize() -> [...]
+        -> _do_finalize_object() ->  _finalize_object()
+    
+    All methods in this call chain are provided by AutoFinalizedObject,
+    derived classes should override the no-op _finalize_object() method.
+    
+    The "[...]" part depends on the python version:
+    * <  3.4: <nothing>
+    * >= 3.4: _finalizer() -> _do_finalize_object_ref()
+
+Author: Wander Lairson Costa
+    Merge pull request #75 from jrtomps/docfix
+    
+    Fixes typo in find_class example.
+Author: Jeromy Tompkins
+    Fixes typo in find_class example
+
+Author: Wander Lairson Costa
+    Revert "Use libusb_strerror to translate erro codes to strings."
+    
+    This reverts commit 592e893a01fc4517dd27018dd71c8520c521135c.
+    
+    It causes regressions on systems using old versions of libusb that
+    don't implement libusb_strerror.
+    
+    closes #57 closes #68.
+    
+    Conflicts:
+    	usb/backend/libusb1.py
+
+Author: Wander Lairson Costa
+    Cleanup resources when device handle is deleted. closes #65.
+    
+    Legacy module has no explicity resource cleanup functions, so we free
+    allocated resources in the __del__ method.
+
+Author: Wander Lairson Costa
+    Trace unit tests.
+    
+    Tracing unit tests functions calls makes easier to track what's going
+    on when regression tests fail.
+
+Author: Wander Lairson Costa
+    Update version to release candidate 1.

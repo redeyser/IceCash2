@@ -1,0 +1,20 @@
+<form  method='POST' action='/sets'>
+    <table class="ice marg norm">
+        <tbody>
+        <tr>
+        <th>Настройка</th><th>Значение</th>
+        </tr>
+        %%#table_sets_caption# class='vcenter flame small'%%
+        %%#table_sets_value# class='itext ice norm' size=10%%
+        %table_sets%
+        <tr>
+            <td>
+                <button class="but norm" name="cancel" value="cancel" onclick="ed_sets.hidden=true;return false;" >Закрыть</button>
+            </td>
+            <td>
+                <button class="but norm" name="save" value="save" onclick="return confirm('Сохранить?');" >Сохранить</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</form>

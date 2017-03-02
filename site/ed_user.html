@@ -1,0 +1,46 @@
+<form  method='POST' action='/user'>
+    <input name="id" id="id" type="hidden" value="%id%"/>
+    <table class="marg norm">
+        <tbody>
+        <tr>
+            <td class="vcenter ice">Тип:</td>
+            <td class="vcenter">
+                <select class='itext flame norm' name="type" id="type">
+                    %types_select%
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="vcenter ice">Login:</td>
+            <td class="vcenter">
+                <input class="itext flame norm" name="login" id="login" value='%login%' type="text" size=10/>
+            </td>
+            <td class="vcenter ice norm">Номер:</td>
+            <td class="vcenter">
+                <input class="itext flame norm" name="idtab" id="login" value='%idtab%' type="text" size=4/>
+            </td>
+        </tr>
+        <tr>
+            <td class="vcenter ice norm">Пароль:</td>
+            <td class="vcenter">
+                <input class="itext flame norm" name="password" id="password" value='' type="password" size=10/>
+            </td>
+            <td class="vcenter ice">CSS:</td>
+            <td class="vcenter">
+                <input class="itext flame norm" name="css" id="css" value='%css%' type="text" size=13/>
+            </td>
+        </tr>
+        <tr>
+            <td colspan=2>
+                <button class="but norm" name="cancel" value="cancel" onclick="ed_user.hidden=true;return false;" >Отменить</button>
+            </td>
+            <td>
+                <button class="but norm" name="delete" value="delete" onclick="return confirm('Удалить?');" >Удалить</button>
+            </td>
+            <td>
+                <button class="but norm" name="save" value="save" onclick="return confirm('Сохранить?');" >Сохранить</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</form>

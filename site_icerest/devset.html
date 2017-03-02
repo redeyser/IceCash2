@@ -1,0 +1,17 @@
+<form  method='POST' action='/printer/textlines'>
+<table =0px>
+    %%#table_text_td# style="padding:0px;" %%
+    %%#table_text_tin# class='itext black small' style="margin:0px" size=40 %%
+    %table_text%
+</table>
+<table class="wall">
+        <tr>
+            <td>
+                <button class="but small" name="cancel" value="cancel" onclick="ed_drv.hidden=true;return false;" >Отменить</button>
+            </td>
+            <td>
+                <button class="but wall small" name="save" value="save" onclick="return confirm('Сохранить?');" >Сохранить</button>
+            </td>
+        </tr>
+</table>
+</form>

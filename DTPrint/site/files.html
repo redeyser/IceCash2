@@ -1,0 +1,20 @@
+<div class='window w800 white'>
+    <div id="image" >
+        <form name='load' method='POST' enctype="multipart/form-data" action='/files'/>
+        Загрузить файл на сервер:
+        <input id="file_image" class="itext green" name="file_image" type="file" />
+        Имя файла:
+        <input class='itext green' size=10 id='filename' name='filename' value='' />
+        <input type='submit' class='but' name='put_file' value='Загрузить'/>
+    </form>
+    </div>
+    <table class="tb">
+    <tr><th>
+    <span class='green'>Файлы на сервере</span>
+    </th>
+    <th>
+    <span class='red'>Удалить</span>
+    </th></tr>
+    %files%
+    </table>
+</div>
