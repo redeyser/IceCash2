@@ -76,6 +76,8 @@ class Actions:
 
     def _prepare_line(self,p):
         self.parse_line={'cmd':'','list':[],'list_pref':'','var':'','dlist':''}
+        p=p.strip("\r")
+        #print "string ["+p+"]"
         if p=="" or p[0]=="#":
             return False
         arr=p.split(" ")
@@ -133,7 +135,7 @@ class Actions:
         return params
 
     def _prepare(self,p):
-        arr=p.split("\r\n")
+        arr=p.split("\n")
         #print "ARR",arr
         parse=[]
         for a in arr:
@@ -169,7 +171,10 @@ class Actions:
         r=False
         for id in cmd['list']:
             #doom 17-02-27
-            if id=='*' or self.db.price.has_key(id):
+            if id=='*':
+                r=True
+                break
+            if self.db.price.has_key(id):
                 if self.db.price[id]['istov']=='1':
                     #print pos['code'],id
                     if str(pos['code']) == id:
@@ -195,6 +200,7 @@ class Actions:
                 return False
             (param,oper,val)=a
             #print pos[param],oper,val
+            tp=str()
             if not var.has_key(param):
                 print "error param"
                 return False
@@ -202,11 +208,17 @@ class Actions:
                 print "error operation"
                 return False
             if type(var[param])==float:
-                val=float(val)
+                tp=float
+                try:
+                    val=float(val)
+                except:
+                    pass
             if type(var[param])==int:
                 try:
+                    tp=int
                     val=int(val)
                 except:
+                    tp=float
                     val=float(val)
             if oper=="=" and not var[param]==val:
                 r=False
@@ -227,7 +239,7 @@ class Actions:
                 r=False
                 break
             if oper=="in":
-                arrlist=val.split(',')
+                arrlist = [tp(i) for i in val.split('|')]
                 if not var[param] in arrlist:
                     r=False
                 break
@@ -324,7 +336,9 @@ class Actions:
         """ Действия Акции """
         r=True
         positions=ps
+        #print act['_then']
         for cmd in act['_then']:
+            #print cmd['cmd']
             #if cmd['cmd'] == DO_HEAD_PROPERTY:
             #    """ ИСПРАВЛЕНИЕ ЗАГОЛОВОКА ЧЕКА """
             #    self.db._check_pos_upd(self.iduser,0,positions[p]['id'],{'dcount':positions[p]['paramf2']})
@@ -524,13 +538,17 @@ class Actions:
     def _do_before_calc(self,ch):
         self.iduser=ch.iduser
         self.ch=ch
+        print len(self.actions)
         for act in self.actions:
             if self._sets(act,'BEFORE_CALC')=='TRUE':
                 ch._pos_read()
+                #print act
                 self.action_true = self._do_if(act,ch.pos)
-                #print "Before.IF = ",self.action_true
+                #print "Before.IF = ",self.action_true,act['name']
                 self._do_then(act,ch.pos)
                 ch._docalc()
+            else:
+                print act['sets']
         return True
 
     def _do_after_calc(self,ch):
@@ -540,7 +558,7 @@ class Actions:
             if self._sets(act,'AFTER_CALC')=='TRUE':
                 ch._pos_read()
                 self.action_true = self._do_if(act,ch.pos)
-                #print "After.IF = ",self.action_true
+                #print "After.IF = ",self.action_true,act
                 self._do_then(act,ch.pos)
         return True
 

@@ -802,6 +802,7 @@ class chIceCash:
                     _dp=_discount_pos
                 else:
                     _dp=dp
+                #print dp,_dp,_cena,_dcount,_minprice
 
                 if _discount_card and _mark.find(MARK_DENY_DISCOUNT)==-1:
                     dsum=calc_discount(_cena,_dcount,_dp,_minprice)
