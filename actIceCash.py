@@ -258,7 +258,8 @@ class Actions:
                 """ Предварительный фильтр """
                 r=False
                 """ ЗАГРУЖАЕМ НОМЕНКЛАТУРУ ИЗ УСЛОВИЯ"""
-                self._get_price_in_list(cmd)
+                if ",".join(cmd['list']) != '*':
+                    self._get_price_in_list(cmd)
                 """ Копируем все позиции в фильтр """
                 if not self.filters.has_key(cmd['var']):
                     self.filters[cmd['var']]={'pos':[],'groups':{}}
@@ -267,11 +268,9 @@ class Actions:
                         posfilter['pos'].append(p)
                 """ Исключаем из фильтра лишнее """
                 posfilter=self.filters[cmd['var']]
-                #print cmd['var'],"p",posfilter['pos']
                 a=[]
                 for p in posfilter['pos']:
                     pos=positions[p]
-                    #print p,pos
                     if pos['storno']!=1:
                         if self._code_in_list(pos,cmd):
                             a.append(p)
@@ -538,7 +537,7 @@ class Actions:
     def _do_before_calc(self,ch):
         self.iduser=ch.iduser
         self.ch=ch
-        print len(self.actions)
+        #print len(self.actions)
         for act in self.actions:
             if self._sets(act,'BEFORE_CALC')=='TRUE':
                 ch._pos_read()

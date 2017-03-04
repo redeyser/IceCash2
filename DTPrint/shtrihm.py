@@ -263,17 +263,25 @@ class frk:
             self._status_error()
         return err
 
+    def _preitog(self):
+        try:
+            err=self.kkm._preitog()
+        except:
+            err=const_error
+            self._status_error()
+        return err
+    
     def _closecheck(self,summa,summa2,skid=0):
-        #try:
-        err=self.kkm._closecheck(summa,summa2,discount=skid,text=u"")
-        #    if not err:
-        #        self._status_ready()
-        #    else:
-        #        self._cancelcheck()
-        #except:
-        #    self._cancelcheck()
-        #    err=const_error
-        #    self._status_error()
+        try:
+            err=self.kkm._closecheck(summa,summa2,discount=skid,text=u"")
+            if not err:
+                self._status_ready()
+            else:
+                self._cancelcheck()
+        except:
+            self._cancelcheck()
+            err=const_error
+            self._status_error()
         return err
 
     def _cancelcheck(self):
@@ -443,7 +451,7 @@ class frk:
         self._print(s)
 
     """ Печать в стиле Цена X Количество = Стоимость, второй строчкой бонус и дисконт """
-    def prn_sale_short(self,fiscal,title,_type,section,p1,p2,p3,ch1,b,d,ch2,ofd):
+    def prn_sale_short(self,fiscal,title,_type,section,realcena,p1,p2,p3,ch1,b,d,ch2,ofd):
         if fiscal!=1:
             text="["+str(section)+"] "+p2+" X "+p1
             val="="+p3
@@ -457,9 +465,10 @@ class frk:
         else:
             if ofd:
                 if _type=='sale':
-                    self._registerpos(title,p1,p2,section=section)
+                    self._registerpos(title,realcena,p2,section=section)
+                    #print realcena,p1,p2,float(realcena)*float(p2)
                 else:
-                    self._returnpos(title,p1,p2,section=section)
+                    self._returnpos(title,realcena,p2,section=section)
             else:
                 if _type=='sale':
                     self._register(p1,p2,section)

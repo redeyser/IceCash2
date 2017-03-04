@@ -6,7 +6,7 @@
     License GPL
     writed by Romanenko Ruslan
     redeyser@gmail.com
-    2017-01-18
+    2017-03-03
 """
 
 import xml.etree.ElementTree as etree
@@ -27,7 +27,7 @@ import json
 
 import dbDTPrint
 
-VERSION="1.0.025"
+VERSION="1.0.026"
 MAX_PRINTERS = 16
 CMD_SHTRIHM = [\
         "_beep",\
@@ -706,6 +706,9 @@ class Handler(BaseHTTPRequestHandler):
         if cm_command == "_opensmena":
             self.ep._opensmena()
 
+        if cm_command == "_preitog":
+            pass
+
         if cm_command == "_renull":
             self.ep._renull()
 
@@ -801,6 +804,7 @@ class Handler(BaseHTTPRequestHandler):
             xml_params=None
         params={}
         #print "SHTRIHM:%s" % cm_command,cm_param
+        #print "SHTRIHM:%s" % cm_command
         if xml_params!=None and xml_params.tag=='list':
             plist=xml_params
             params={}
@@ -936,6 +940,9 @@ class Handler(BaseHTTPRequestHandler):
         if cm_command == "_opensmena":
             self.ep._opensmena()
 
+        if cm_command == "_preitog":
+            self.ep._preitog()
+
         if cm_command == "_renull":
             self.ep._renull()
 
@@ -996,6 +1003,7 @@ class Handler(BaseHTTPRequestHandler):
             params['title'],\
             params['oper'],\
             params['section'],\
+            params['realcena'],\
             params['p1'],params['p2'],params['p3'],\
             params['ch'],params['bonus'],params['discount'],params['line'],bool(int(params['ofd'])))
 
