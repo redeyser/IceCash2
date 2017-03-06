@@ -35,7 +35,7 @@ from clientEgais import *
 from chIceCash import _round
 
 MYSQL_HOST  = 'localhost'
-VERSION     = '2.0.062'
+VERSION     = '2.0.063'
 
 RULE_NO         = -1
 RULE_SELLER     = 10

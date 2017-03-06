@@ -185,7 +185,7 @@ class chIceCash:
         if r==int(shk[-1]):
             return True
         else:
-            print r,int(shk[-1])
+            #print r,int(shk[-1])
             return False
 
 
@@ -452,14 +452,21 @@ class chIceCash:
             if pos['storno']==1:
                 continue
 
-            #self.dtpclient._cm(printer,"prn_lines_def",{'text':pos['name']})
             if not ofd or self.db.sets['d_devtype']=='KKM_SHTRIHM':
                 self.dtpclient._cm(printer,"prn_lines",{'text':pos['name'],"width":0,"height":0,"font":1,"bright":10,"big":0,"align":"left","invert":0})
+            
+            """ Изменение цены. скидку вкручиваем в цену. Так требует ОФД """
+            if pos['discount']>0 or pos['bonus_discount']>0:
+                _cena=_round((pos['paramf3']-pos['discount']-pos['bonus_discount'])/pos['paramf2'],2)
+            else:
+                _cena=_round(pos['paramf1'],2)
+            #print "_cena=",_cena
             if not self.dtpclient._cm(printer,"prn_sale_short",\
                     {   'fiscal'    : fiscal,\
                         'oper'      : _ctype,\
                         'title'     : pos['name'],\
                         'section'   : pos['p_section'],\
+                        'realcena'  : _cena,\
                         'p1'        : _round(pos['paramf1'],2),\
                         'p2'        : _round(pos['paramf2'],3),\
                         'p3'        : _round(pos['paramf3'],2),\
@@ -470,7 +477,17 @@ class chIceCash:
                         'ofd'       : d_ofd }):
                 return False
 
+        #self.dtpclient._cm(printer,"_discount",{'islast':0,'issum':1,'isgrow':0,'summa':_round(1,2)})
+        
+        #""" ПОДЫТОГ """
+        #if not self.dtpclient._cm(printer,"_preitog",{}):
+        #    return False
+        
 
+        #""" ПРОВЕДЕНИЕ СУММОВОЙ СКИДКИ НА ВЕСЬ ЧЕК """
+        #if (not escpos)and(fiscal==1)and(_discount+_bonus_discount)>0:
+        #    if not self.dtpclient._cm(printer,"_discount",{'islast':0,'issum':1,'isgrow':0,'summa':_round(_discount+_bonus_discount,2)}):
+        #        return False
 
         """ ДИСКОНТНАЯ КАРТА """
         if self.db.ch_head["discount_card"]!="":
@@ -548,12 +565,6 @@ class chIceCash:
                 self.dtpclient._cm(printer,"prn_sale_style",{'text':u"*** Списано бонусов",'value':  _round(self.db.ch_head["bonus_discount"],2),'ch':"."})
                 self.dtpclient._cm(printer,"prn_line",{'ch':"="})
                 
-            
-
-        """ ПРОВЕДЕНИЕ СУММОВОЙ СКИДКИ НА ВЕСЬ ЧЕК """
-        if (not escpos)and(fiscal==1)and(_discount+_bonus_discount)>0:
-            if not self.dtpclient._cm(printer,"_discount",{'islast':0,'issum':1,'isgrow':0,'summa':_round(_discount+_bonus_discount,2)}):
-                return False
 
         """ ПРИВЕДЕНИЕ КОМПЛЕКСНОЙ ОПЛАТЫ К ОДНОМУ ТИПУ"""
         if self.db.sets['d_devtype']=='KKM_FPRINT':
