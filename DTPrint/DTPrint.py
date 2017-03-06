@@ -804,7 +804,7 @@ class Handler(BaseHTTPRequestHandler):
             xml_params=None
         params={}
         #print "SHTRIHM:%s" % cm_command,cm_param
-        #print "SHTRIHM:%s" % cm_command
+        print "SHTRIHM:%s" % cm_command
         if xml_params!=None and xml_params.tag=='list':
             plist=xml_params
             params={}
@@ -866,10 +866,11 @@ class Handler(BaseHTTPRequestHandler):
                     return_data=arr2xml('tables',self.TablesStruct)
 
         if cm_command == "prn_get_tabvalues":
-            print "TableValues" 
+            #print "TableValues", params['table'] 
             self.TablesValues=[]
             table=int(params['table'])
             self.ep.tableStruct(table)
+            #print self.ep.TableStruct
             for i in range(self.ep.TableStruct[0]):
                 fields=[]
                 for j in range(self.ep.TableStruct[1]):
@@ -881,6 +882,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.TablesValues.append(fields)
             return_type="array"
             return_id=0
+            #print 'VALUES', self.TablesValues
             if not self.ep._iserror():
                 if xmlformat:
                     textlines=[]
@@ -1030,9 +1032,10 @@ class Handler(BaseHTTPRequestHandler):
 
         if return_id==-1:
             return_id=self.ep.error
-            #print "resultcode=%s" % hex(return_id)
+            print "resultcode=%s" % hex(return_id)
 
         if xmlformat:
+            #print return_data
             return self.result_xml(return_id,return_data,return_type)
         else:
             return return_id

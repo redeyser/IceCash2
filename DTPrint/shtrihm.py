@@ -466,7 +466,7 @@ class frk:
             if ofd:
                 if _type=='sale':
                     self._registerpos(title,realcena,p2,section=section)
-                    #print realcena,p1,p2,float(realcena)*float(p2)
+                    print "short:",realcena,p1,p2,float(realcena)*float(p2)
                 else:
                     self._returnpos(title,realcena,p2,section=section)
             else:

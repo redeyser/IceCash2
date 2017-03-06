@@ -445,7 +445,6 @@ class chIceCash:
             self.dtpclient._cm(printer,"prn_lines",{'text':message,"width":0,"height":1,"font":1,"bright":0,"big":0,"align":"centers","invert":0})
             self.dtpclient._cm(printer,"prn_lines",{'text':submessage+u" \n","width":0,"height":0,"font":1,"bright":10,"big":0,"align":"centers","invert":0})
 
-
         """ ПЕЧАТЬ ПОЗИЦИЙ ЧЕКА """
         for p in range(len(self.pos)):
             pos=self.pos[p]
@@ -460,7 +459,7 @@ class chIceCash:
                 _cena=_round((pos['paramf3']-pos['discount']-pos['bonus_discount'])/pos['paramf2'],2)
             else:
                 _cena=_round(pos['paramf1'],2)
-            #print "_cena=",_cena
+            
             if not self.dtpclient._cm(printer,"prn_sale_short",\
                     {   'fiscal'    : fiscal,\
                         'oper'      : _ctype,\
@@ -711,12 +710,14 @@ class chIceCash:
 
     def _docalc(self):
         def calc_discount(cena,count,proc,_minprice):
-            _proc=proc
-            if float(_round(cena-cena*_proc,2))>=_minprice:
-                result=float(_round(cena*count*_proc,2))
-            else:
-                result=float(_round(cena*count,2))-float(_round(_minprice*count,2))
-            return result
+            summa = float(_round(cena*count,2))
+            dwcena = float(_round(cena*proc,2))
+            _cena=cena-dwcena
+            _cena = _minprice if _cena<_minprice else _cena
+            _summa = float(_round(_cena*count,2))
+            discount = summa - _summa
+            #print "calc_discount:",summa,_cena,_summa,discount
+            return (_cena, discount)
 
         def getvars(pos):
             if pos['p_max_skid']!=0:
@@ -813,15 +814,13 @@ class chIceCash:
                     _dp=_discount_pos
                 else:
                     _dp=dp
-                #print dp,_dp,_cena,_dcount,_minprice
 
+                """ Высчитываем процентную скидку и новую цену """
                 if _discount_card and _mark.find(MARK_DENY_DISCOUNT)==-1:
-                    dsum=calc_discount(_cena,_dcount,_dp,_minprice)
-                    """ Расчет цены после скидки """
-                    _cena=float(_round((_summa-dsum)/_count,2))
-
+                    (_cena,dsum) = calc_discount(_cena,_dcount,_dp,_minprice)
+                """ Высчитываем максимально возможное списание бонусами, исходя из скидочной цены """
                 if _bonus_card and bt==1 and _mark.find(MARK_DENY_DISCOUNT)==-1:
-                    bsum=calc_discount(_cena,_count,bm,_minprice)
+                    (_cena,bsum) = calc_discount(_cena,_count,bm,_minprice)
 
                 discount+=dsum
                 discount_bonus+=bsum
@@ -829,7 +828,6 @@ class chIceCash:
             pos['discount']=dsum
             pos['bonus_discount']=bsum
             self.pos[p]=pos
-            #print pos['bonus_discount']
 
         cur_discount=discount_bonus
 
@@ -856,41 +854,48 @@ class chIceCash:
                 discount_bonus=0
                 for p in range(len(self.pos)):
                     pos=self.pos[p]
-                    dsum=0
+                    bsum=0
                     if pos['storno']!=1:
-                        dsum=float(_round(pos["bonus_discount"]*p_correct,2))
-                        discount_bonus+=dsum
-                    pos['bonus_discount']=dsum
+                        bsum=float(_round(pos["bonus_discount"]*p_correct,2))
+                        discount_bonus+=bsum
+                    pos['bonus_discount']=bsum
                     self.pos[p]=pos
                     
             discount_bonus=cur_discount
 
-        """ Пересчитываем скидку и списание бонусов """
+        """ Пересчитываем скидку и списание бонусов
+            Таким образом, чтобы позиционные суммы оказались
+            кратными округленным скидочным ценам 
+            А также суммируем все откорректированные скидки
+        """
         discount=0
         discount_bonus=0
         for p in range(len(self.pos)):
             pos=self.pos[p]
             if pos['storno']!=1:
-                discount+=pos["discount"]
-                discount_bonus+=pos["bonus_discount"]
-                #pos["discount"]=pos["discount"]+pos["bonus_discount"]
-                pos["bonus"]=0
-                if pos["bonus_discount"]!=0:
-                    last_bonus=p
+                _summa=pos["paramf3"]
+                _count=pos["paramf2"]
+                dsum=pos["discount"]
+                bsum=pos["bonus_discount"]
+                """ Высчитываем цену после двух скидок и корректируем суммы скидок"""
+                _cena = float(_round((_summa-dsum-bsum)/_count, 2))
+                delta = (_summa-(_cena*_count))-(dsum+bsum)
+                if dsum>0:
+                    dsum+=delta
                 else:
-                    last_bonus=0
+                    bsum+=delta
+                pos["discount"]=dsum
+                pos["bonus_discount"]=bsum
+                discount+=dsum
+                discount_bonus+=bsum
+                pos["bonus"]=0
                 self.pos[p]=pos
 
-        if cur_discount!=discount_bonus:
-            self.pos[last_bonus]['bonus_discount']+=cur_discount-discount_bonus
-            discount_bonus=cur_discount
-            
-            
-        if discount_bonus>bs:
-            self.pos[last_bonus]['bonus_discount']-=discount_bonus-bs
-            discount_bonus=bs
-
-        #discount=discount+discount_bonus
+        """ В результате округлений, сумма списания бонусов
+            может оказаться немного больше суммы накоплений
+            Бонусный сервер должен допускать списание в минул
+            на копеечные суммы
+        """
 
         """ Последний этап, это начисление бонусов 
             Бонусы начисляются только если не было скидки по дисконтной карте
@@ -917,7 +922,7 @@ class chIceCash:
                             _dcount=_count
                         
                         if _mark.find(MARK_DENY_BONUS)==-1: 
-                            bsum = calc_discount(_cena,_dcount,_bp,_minprice)
+                            (_cena,bsum) = calc_discount(_cena,_dcount,_bp,_minprice)
                         else:
                             bsum=0
 
