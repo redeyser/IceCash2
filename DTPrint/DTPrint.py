@@ -27,7 +27,7 @@ import json
 
 import dbDTPrint
 
-VERSION="1.0.026"
+VERSION="1.0.027"
 MAX_PRINTERS = 16
 CMD_SHTRIHM = [\
         "_beep",\
@@ -804,7 +804,7 @@ class Handler(BaseHTTPRequestHandler):
             xml_params=None
         params={}
         #print "SHTRIHM:%s" % cm_command,cm_param
-        print "SHTRIHM:%s" % cm_command
+        #print "SHTRIHM:%s" % cm_command
         if xml_params!=None and xml_params.tag=='list':
             plist=xml_params
             params={}
@@ -1032,6 +1032,7 @@ class Handler(BaseHTTPRequestHandler):
 
         if return_id==-1:
             return_id=self.ep.error
+            print "SHTRIHM:%s" % cm_command
             print "resultcode=%s" % hex(return_id)
 
         if xmlformat:
