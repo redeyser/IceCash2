@@ -410,7 +410,6 @@ class chIceCash:
                 if _err:
                     message=u"Призовой сервер недоступен."
                 else:
-                    #print self.ps.info
                     self.dtpclient._cm(printer,"prn_lines",{'text':self.ps.info,"width":0,"height":0,"font":3,"bright":1,"big":0,"align":"left","invert":0})
                     if int(self.ps.gen['idprize'])==0:
                         message=u"Ваш чек не выиграл"

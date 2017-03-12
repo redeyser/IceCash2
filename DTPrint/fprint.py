@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
-# version 1.0.002
+# version 1.0.004
 
 import time
 import serial
@@ -16,11 +16,15 @@ from struct import pack, unpack
     Романенко Руслан Андреевич
     Кемерово (2017)
     ----------------------------
-    v 1.0.003 2017-01-11
+    v 1.0.004 2017-03-12
     author : Redeyser
     mail   : redeyser@gmail.com
     Lic    : GPL
     ----------------------------
+    -   prn_sale_short:
+        новый параметр - realcena. Цена отправляемая в ФРК
+    -   для печати ОФД QR-кода : 
+        prn_tabset(value="1",tabval="printofd",incrow=0,nvalues=1)
     -   Ошибка в self.error может содержать 
         0 - нет ошибок
         1 - ошибка в процессе обмена, 
@@ -277,6 +281,7 @@ TABLE_VALUES = {
     'sections'  : [7,1 ,1 ,'CHR'],\
     'typedev'   : [9,1 ,1 ,'BCD'],\
     'speed'     : [9,1 ,2 ,'BCD'],\
+    'printofd'  : [2,1 ,14,'BCD'],\
     }
 
 TYPE_CHECK = {\
@@ -967,7 +972,6 @@ class KKM_FPRINT:
     def _registerpos(self,title,price="0",count="0",tdiscount="0",znak="0",size="0",nalog="4",section="1",shk=""):
         if shk=="":
             shk=NULL*16
-        print "fprint:registerpos"
         tdiscount=chr(int(tdiscount))
         znak=chr(int(znak))
         nalog=chr(int(nalog))
@@ -1101,7 +1105,7 @@ class KKM_FPRINT:
         self._print(s)
 
     """ Печать в стиле Цена X Количество = Стоимость, второй строчкой бонус и дисконт """
-    def prn_sale_short(self,fiscal,title,_type,section,p1,p2,p3,ch1,b,d,ch2,ofd):
+    def prn_sale_short(self,fiscal,title,_type,section,realcena,p1,p2,p3,ch1,b,d,ch2,ofd):
         if fiscal!=1:
             text="["+str(section)+"] "+p2+" X "+p1
             val="="+p3
@@ -1114,16 +1118,14 @@ class KKM_FPRINT:
         else:
             if ofd:
                 if _type=='sale':
-                    self._registerpos(title,p1,p2,section=section)
+                    self._registerpos(title,realcena,p2,section=section)
                 else:
-                    self._returnpos(title,p1,p2,section=section)
+                    self._returnpos(title,realcena,p2,section=section)
             else:
                 if _type=='sale':
                     self._register(p1,p2,section=section)
                 else:
                     self._return(p1,p2)
-                #self._returnpos(title,p1,p2,section=section)
-                #self._return(p1,p2)
             if self.error != CMDERR_NO:
                 return False
         if b!="" and  b!="0.00":
