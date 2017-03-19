@@ -16,7 +16,7 @@ from struct import pack, unpack
     Романенко Руслан Андреевич
     Кемерово (2017)
     ----------------------------
-    v 1.0.004 2017-03-12
+    v 1.0.005 2017-03-19
     author : Redeyser
     mail   : redeyser@gmail.com
     Lic    : GPL
@@ -1117,10 +1117,11 @@ class KKM_FPRINT:
             self.prn_lines(s,font=0)
         else:
             if ofd:
-                if _type=='sale':
-                    self._registerpos(title,realcena,p2,section=section)
-                else:
-                    self._returnpos(title,realcena,p2,section=section)
+                #if _type=='sale':
+                """ 2.0.69 Теперь регистрация позиции в любом случае """
+                self._registerpos(title,realcena,p2,section=section)
+                #else:
+                    #self._returnpos(title,realcena,p2,section=section)
             else:
                 if _type=='sale':
                     self._register(p1,p2,section=section)
