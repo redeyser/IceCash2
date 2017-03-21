@@ -501,6 +501,7 @@ class KKM:
 
         def _register(self,price="0",count="1",departament="1",text=u"",taxes=[0,0,0,0][:]):
             """ Изменено doom для совместимости с fprint"""
+            #print "register",price,count
             self.__clearAnswer()
             bprice=sval2data(price,5)
             bcount=sval2data(count,5)

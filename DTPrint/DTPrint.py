@@ -6,7 +6,7 @@
     License GPL
     writed by Romanenko Ruslan
     redeyser@gmail.com
-    2017-03-03
+    2017-03-12
 """
 
 import xml.etree.ElementTree as etree
@@ -27,7 +27,7 @@ import json
 
 import dbDTPrint
 
-VERSION="1.0.026"
+VERSION="1.0.028"
 MAX_PRINTERS = 16
 CMD_SHTRIHM = [\
         "_beep",\
@@ -580,8 +580,8 @@ class Handler(BaseHTTPRequestHandler):
         except:
             xml_params=None
         params={}
-        print "FPRINT:%s" % cm_command
-        print "PARAMS:%s" % cm_param
+        #print "FPRINT:%s" % cm_command
+        #print "PARAMS:%s" % cm_param
         if xml_params!=None and xml_params.tag=='list':
             plist=xml_params
             params={}
@@ -763,6 +763,7 @@ class Handler(BaseHTTPRequestHandler):
             params['title'],\
             params['oper'],\
             params['section'],\
+            params['realcena'],\
             params['p1'],params['p2'],params['p3'],\
             params['ch'],params['bonus'],params['discount'],params['line'],bool(int(params['ofd'])))
 
@@ -804,7 +805,7 @@ class Handler(BaseHTTPRequestHandler):
             xml_params=None
         params={}
         #print "SHTRIHM:%s" % cm_command,cm_param
-        print "SHTRIHM:%s" % cm_command
+        #print "SHTRIHM:%s" % cm_command
         if xml_params!=None and xml_params.tag=='list':
             plist=xml_params
             params={}
@@ -1032,6 +1033,7 @@ class Handler(BaseHTTPRequestHandler):
 
         if return_id==-1:
             return_id=self.ep.error
+            print "SHTRIHM:%s" % cm_command
             print "resultcode=%s" % hex(return_id)
 
         if xmlformat:

@@ -410,7 +410,6 @@ class chIceCash:
                 if _err:
                     message=u"Призовой сервер недоступен."
                 else:
-                    #print self.ps.info
                     self.dtpclient._cm(printer,"prn_lines",{'text':self.ps.info,"width":0,"height":0,"font":3,"bright":1,"big":0,"align":"left","invert":0})
                     if int(self.ps.gen['idprize'])==0:
                         message=u"Ваш чек не выиграл"
@@ -711,12 +710,10 @@ class chIceCash:
     def _docalc(self):
         def calc_discount(cena,count,proc,_minprice):
             summa = float(_round(cena*count,2))
-            dwcena = float(_round(cena*proc,2))
-            _cena=cena-dwcena
+            _cena = float(_round(cena*(1-proc),2))
             _cena = _minprice if _cena<_minprice else _cena
             _summa = float(_round(_cena*count,2))
             discount = summa - _summa
-            #print "calc_discount:",summa,_cena,_summa,discount
             return (_cena, discount)
 
         def getvars(pos):
@@ -821,7 +818,8 @@ class chIceCash:
                 """ Высчитываем максимально возможное списание бонусами, исходя из скидочной цены """
                 if _bonus_card and bt==1 and _mark.find(MARK_DENY_DISCOUNT)==-1:
                     (_cena,bsum) = calc_discount(_cena,_count,bm,_minprice)
-
+                
+                #print "calc_discount:",_cena,_count,_summa,dsum
                 discount+=dsum
                 discount_bonus+=bsum
 
@@ -879,7 +877,9 @@ class chIceCash:
                 bsum=pos["bonus_discount"]
                 """ Высчитываем цену после двух скидок и корректируем суммы скидок"""
                 _cena = float(_round((_summa-dsum-bsum)/_count, 2))
-                delta = (_summa-(_cena*_count))-(dsum+bsum)
+                _nsumma=float(_round(_cena*_count,2))
+                delta = (_summa-_nsumma)-(dsum+bsum)
+                #print "delta:",delta,_summa,_cena,_count,dsum,bsum
                 if dsum>0:
                     dsum+=delta
                 else:

@@ -460,13 +460,11 @@ class frk:
             ld=self.MAX_WIDTH-lv
             stext=text.ljust(ld,ch1)
             s=stext+val
-            #print self.MAX_WIDTH,lv,ld,s,stext,val
             self.prn_lines(s,font=0)
         else:
             if ofd:
                 if _type=='sale':
                     self._registerpos(title,realcena,p2,section=section)
-                    print "short:",realcena,p1,p2,float(realcena)*float(p2)
                 else:
                     self._returnpos(title,realcena,p2,section=section)
             else:
@@ -475,7 +473,6 @@ class frk:
                 else:
                     self._return(p1,p2)
             if self.error != CMDERR_NO:
-                print "sale short error"
                 return False
         if b!="" and  b!="0.00":
             tb=u"бонус: %s " % b
