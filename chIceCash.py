@@ -450,7 +450,9 @@ class chIceCash:
             if pos['storno']==1:
                 continue
 
-            if not ofd or self.db.sets['d_devtype']=='KKM_SHTRIHM':
+
+            """ Печать строки для штриха или для старого варианта или если это копия чека """
+            if not ofd or self.db.sets['d_devtype']=='KKM_SHTRIHM' or fiscal==0:
                 self.dtpclient._cm(printer,"prn_lines",{'text':pos['name'],"width":0,"height":0,"font":1,"bright":10,"big":0,"align":"left","invert":0})
             
             """ Изменение цены. скидку вкручиваем в цену. Так требует ОФД """
