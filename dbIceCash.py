@@ -21,6 +21,7 @@ TB_EGAIS_PLACES = "tb_egais_places"
 TB_EGAIS_OSTAT  = "tb_egais_ostat"
 TB_EGAIS_DOCS_HD  = "tb_egais_docs_hd"
 TB_EGAIS_DOCS_CT  = "tb_egais_docs_ct"
+TB_EGAIS_DOCS_NEED  = "tb_egais_docs_need"
 
 SPEED = {\
     1:1200,\
@@ -84,6 +85,7 @@ class dbIceCash(my.db):
         self.tb_egais_ostat   = tbs.tb_egais_ostat   ('tb_egais_ostat')
         self.tb_actions_hd    = tbs.tb_actions_hd ('tb_actions_hd')
         self.tb_tlist         = tbs.tb_tlist ('tb_tlist')
+        self.tb_egais_docs_need = tbs.tb_egais_docs_need ('tb_egais_docs_need')
         self._tbinit(TB_BOXES_HD)
         self._tbinit(TB_BOXES_CT)
         self._tbinit(TB_CHECK_HEAD)
@@ -92,6 +94,7 @@ class dbIceCash(my.db):
         self._tbinit(TB_EGAIS_OSTAT)
         self._tbinit(TB_EGAIS_DOCS_HD)
         self._tbinit(TB_EGAIS_DOCS_CT)
+        self._tbinit(TB_EGAIS_DOCS_NEED)
 
     def _tbinit(self,name):
         tb=getattr(tbs, name)
@@ -112,6 +115,7 @@ class dbIceCash(my.db):
         for r in res:
             db.append(r[0])
         self.tables=db
+
     def truncate_trsc(self):
         self.run("truncate tb_Zet")
         self.run("truncate tb_Zet_cont")
@@ -133,6 +137,7 @@ class dbIceCash(my.db):
     """ Optimize functions ----------------------- """
 
     def _gets(self,tn,tostr=False,dttm2str=True):
+        self.result_order=[]
         result = self.get(self.tbs[tn]._gets())
         if len(result)==0:
             return None
@@ -258,7 +263,12 @@ class dbIceCash(my.db):
     def _empty(self,tn):
         return self.tbs[tn].empty_all_values()
 
+    """ Удалить запись """
+    def _delete(self,tn,where):
+        return self.run(self.tbs[tn].query_delete(where))
+
     """ ------------------------------------------ """
+    
     def _user_gets(self,rule,_if):
         return self.get(self.tb_users._gets(_if+str(rule)))
 
@@ -1030,6 +1040,7 @@ class dbIceCash(my.db):
             self.run(self.tb_egais_ostat._create())
             self.run(self.tb_egais_docs_hd._create())
             self.run(self.tb_egais_docs_ct._create())
+            self.run(self.tb_egais_docs_need._create())
             self.run(self.tb_actions_hd._create())
             self.run(self.tb_tlist._create())
 

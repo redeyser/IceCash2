@@ -24,8 +24,8 @@ import subprocess
 PIPE = subprocess.PIPE
 import my
 
-from dbIceCash import TB_EGAIS_PLACES,TB_EGAIS_OSTAT,TB_EGAIS_DOCS_HD,TB_EGAIS_DOCS_CT
-import dbIceCash
+#from dbIceCash import TB_EGAIS_PLACES,TB_EGAIS_OSTAT,TB_EGAIS_DOCS_HD,TB_EGAIS_DOCS_CT
+import dbIceCash as db
 from clientDrv import DTPclient
 from chIceCash import *
 from zIceCash import *
@@ -35,7 +35,7 @@ from clientEgais import *
 from chIceCash import _round
 
 MYSQL_HOST  = 'localhost'
-VERSION     = '2.0.070'
+VERSION     = '2.0.074'
 
 RULE_NO         = -1
 RULE_SELLER     = 10
@@ -103,7 +103,7 @@ def json_serial_str(obj):
 class Handler(BaseHTTPRequestHandler):
 
     def mysql_open(self):
-        self.db = dbIceCash.dbIceCash(dbIceCash.DATABASE, MYSQL_HOST, dbIceCash.MYSQL_USER, dbIceCash.MYSQL_PASSWORD) 
+        self.db = db.dbIceCash(db.DATABASE, MYSQL_HOST, db.MYSQL_USER, db.MYSQL_PASSWORD) 
         return self.db.open()
         
     def _getval(self,key,default):
@@ -590,16 +590,24 @@ class Handler(BaseHTTPRequestHandler):
             self._writejson(j)
             return
 
+        if parsed_path.path=='/egais/get/nattn':
+            return self.qstd_gets(db.TB_EGAIS_DOCS_NEED,tohash=False,usegets=True)
+            #docs=self.db._select(db.TB_EGAIS_DOCS_NEED)
+            #print docs
+            #j=json.dumps(docs,ensure_ascii=False)
+            #self._writejson(j)
+            #return
+
         if parsed_path.path=='/egais/get/doc':
             idd=self._getval('idd',0)
             if idd==0:
                 return_false()
                 return
             fd=['id','pref_AlcCode','oref_ShortName','pref_ShortName','pref_AlcVolume','pref_Capacity','wbr_InformBRegId','pref_ProductVCode','real_Quantity','pref_RegId']
-            hd=self.db._select(TB_EGAIS_DOCS_HD,"id=%s" % idd,None,tohash=False,nofields=False)
+            hd=self.db._select(db.TB_EGAIS_DOCS_HD,"id=%s" % idd,None,tohash=False,nofields=False)
             if len(hd)>0:
                 hd=hd[0]
-            ct=self.db._select(TB_EGAIS_DOCS_CT,"iddoc=%s" % idd,fd,order="wb_Identity",tohash=False,nofields=True)
+            ct=self.db._select(db.TB_EGAIS_DOCS_CT,"iddoc=%s" % idd,fd,order="wb_Identity",tohash=False,nofields=True)
             j=json.dumps({_RESULT:'true','hd':hd,'ct':ct,'fields':fd},default=json_serial_str,ensure_ascii=False)
             self._writejson(j)
             return
@@ -631,7 +639,7 @@ class Handler(BaseHTTPRequestHandler):
 
         if parsed_path.path=='/egais/get/ostats':
             fd=['id','pref_AlcCode','oref_ShortName','pref_FullName','pref_AlcVolume','pref_Capacity','rst_InformBRegId','pref_ProductVCode','rst_Quantity','rst_InformARegId']
-            return self.qstd_gets(TB_EGAIS_OSTAT,"",fd,order="oref_ClientRegId,pref_AlcCode",tohash=False,nofields=True)
+            return self.qstd_gets(db.TB_EGAIS_OSTAT,"",fd,order="oref_ClientRegId,pref_AlcCode",tohash=False,nofields=True)
 
         if parsed_path.path=='/egais/get/ostat':
             ostat=self.db.egais_get_ostat()
@@ -694,9 +702,9 @@ class Handler(BaseHTTPRequestHandler):
         if parsed_path.path=='/egais/get/places':
             id=self._getval('id',None)
             if id==None:
-                return self.qstd_gets(TB_EGAIS_PLACES,"",["ClientRegId","KPP"],order="KPP",tohash=True)
+                return self.qstd_gets(db.TB_EGAIS_PLACES,"",["ClientRegId","KPP"],order="KPP",tohash=True)
             else:
-                return self.qstd_gets(TB_EGAIS_PLACES,"ClientRegId=%s" % id,None,tohash=False)
+                return self.qstd_gets(db.TB_EGAIS_PLACES,"ClientRegId=%s" % id,None,tohash=False)
 
         if parsed_path.path=='/egais/send/ostat':
             self.create_egais()
@@ -714,6 +722,15 @@ class Handler(BaseHTTPRequestHandler):
                 return
             self.create_egais()
             if not self.egais._send_reply(ttn):
+                self._writetxt(POST_FALSE)
+                return
+            self._writetxt(POST_TRUE)
+            del self.egais
+            return
+
+        if parsed_path.path=='/egais/send/nattn':
+            self.create_egais()
+            if not self.egais._send_nattn():
                 self._writetxt(POST_FALSE)
                 return
             self._writetxt(POST_TRUE)
@@ -786,6 +803,19 @@ class Handler(BaseHTTPRequestHandler):
                 return
             self.create_dtp()
             if not self.dtpclient._cm(printer,"_opensmena",{}):
+                self._writetxt(POST_FALSE)
+                return
+            self._writetxt(POST_TRUE)
+            del self.dtpclient
+            return
+
+        if self.path=='/cmd/prn/continuePrint':
+            printer=self.db.sets["d_name"]
+            if printer=='None':
+                self._writetxt(POST_FALSE)
+                return
+            self.create_dtp()
+            if not self.dtpclient._cm(printer,"_continueprint",{}):
                 self._writetxt(POST_FALSE)
                 return
             self._writetxt(POST_TRUE)
@@ -1727,7 +1757,7 @@ class Handler(BaseHTTPRequestHandler):
 
             try:
                 ice_lock()
-                nboxes=self.db._select(dbIceCash.TB_CHECK_CONT," idcheck=0 and iduser=%s and nbox<>0" % self.iduser,fields=["nbox"],group='nbox',toarr=True)
+                nboxes=self.db._select(db.TB_CHECK_CONT," idcheck=0 and iduser=%s and nbox<>0" % self.iduser,fields=["nbox"],group='nbox',toarr=True)
                 f=True
                 res=self.check._pay(ncheck,nal,bnal)
                 if res and len(nboxes)>0:
@@ -1982,7 +2012,7 @@ class Handler(BaseHTTPRequestHandler):
             self.create_check()
             try:
                 ice_lock()
-                nboxes=self.db._select(dbIceCash.TB_CHECK_CONT," idcheck=0 and iduser=%s and nbox<>0" % self.iduser,fields=["nbox"],group='nbox',toarr=True)
+                nboxes=self.db._select(db.TB_CHECK_CONT," idcheck=0 and iduser=%s and nbox<>0" % self.iduser,fields=["nbox"],group='nbox',toarr=True)
                 f=True
                 if len(nboxes)>0:
                     self.create_icerest()
@@ -2084,7 +2114,7 @@ class Handler(BaseHTTPRequestHandler):
             ct=json.loads(form["ct"].value)
 
             if id!=0:
-                doc=self.db._select(TB_EGAIS_DOCS_HD,"id=%s" % id)
+                doc=self.db._select(db.TB_EGAIS_DOCS_HD,"id=%s" % id)
                 if len(doc)==0:
                     self.return_false()
                     return
@@ -2094,30 +2124,30 @@ class Handler(BaseHTTPRequestHandler):
                     return
                 #self.db._delete(TB_EGAIS_DOCS_CT,"iddoc=%s" % id)
 
-            pl_send=self.db._select(TB_EGAIS_PLACES,"KPP='%s'" % self.db.sets['kpp'])[0]
-            pl_recv=self.db._select(TB_EGAIS_PLACES,"ClientRegId='%s'" % hd['recv_RegId'])[0]
+            pl_send=self.db._select(db.TB_EGAIS_PLACES,"KPP='%s'" % self.db.sets['kpp'])[0]
+            pl_recv=self.db._select(db.TB_EGAIS_PLACES,"ClientRegId='%s'" % hd['recv_RegId'])[0]
             struct={'wb_Identity':hd['wb_NUMBER'],'wb_NUMBER':hd['wb_NUMBER'],'wb_Date':hd['wb_Date'],'wb_ShippingDate':hd['wb_Date'],'wb_Type':hd['wb_Type'],'wb_UnitType':hd['wb_UnitType'],'type':"2",'status':hd['status'],\
             'send_INN':pl_send['INN'],'send_KPP':pl_send['KPP'],'send_ShortName':pl_send['ShortName'],'send_RegId':pl_send['ClientRegId'],'recv_INN':pl_recv['INN'],'recv_KPP':pl_recv['KPP'],'recv_ShortName':pl_recv['ShortName'],'recv_RegId':pl_recv['ClientRegId']}
             if id==0:
-                if not self.db._insert(TB_EGAIS_DOCS_HD,struct):
+                if not self.db._insert(db.TB_EGAIS_DOCS_HD,struct):
                     self.return_false()
                     return
                 id=self.db.lastid
             else:
-                if not self.db._update(TB_EGAIS_DOCS_HD,struct,"id=%s" % id):
+                if not self.db._update(db.TB_EGAIS_DOCS_HD,struct,"id=%s" % id):
                     self.return_false()
                     return
 
             identity=0
             for d in ct:
                 identity+=1
-                ost=self.db._select(TB_EGAIS_OSTAT,"id='%s'" % d[0])[0]
+                ost=self.db._select(db.TB_EGAIS_OSTAT,"id='%s'" % d[0])[0]
                 struct={'wb_Identity':str(identity),'iddoc':id,\
                 'pref_Type':'АП','pref_ShortName':ost['pref_FullName'],'pref_AlcCode':ost['pref_AlcCode'],'pref_AlcVolume':ost['pref_AlcVolume'],'pref_ProductVCode':ost['pref_ProductVCode'],'pref_Capacity':ost['pref_Capacity'],\
                 'wbr_InformBRegId':ost['rst_InformBRegId'],'pref_RegId':ost['rst_InformARegId'],\
                 'oref_ClientRegId':ost['oref_ClientRegId'],'oref_INN':ost['oref_INN'],'oref_KPP':ost['oref_KPP'],'oref_ShortName':ost['oref_ShortName'],\
                 'wb_Quantity':ost['rst_Quantity'],'real_Quantity':d[1],'wb_Price':'0'}
-                self.db._insert(TB_EGAIS_DOCS_CT,struct)
+                self.db._insert(db.TB_EGAIS_DOCS_CT,struct)
             self.return_true()
             return
 
@@ -2213,24 +2243,26 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """ Создаем веб сервер многопоточный """
 
 if __name__ == '__main__':
-    db = dbIceCash.dbIceCash(dbIceCash.DATABASE, MYSQL_HOST, dbIceCash.MYSQL_USER, dbIceCash.MYSQL_PASSWORD) 
-    if db.open():
+    dbase = db.dbIceCash(db.DATABASE, MYSQL_HOST, db.MYSQL_USER, db.MYSQL_PASSWORD) 
+    if dbase.open():
+        dbase._tables()
+        dbase._recreate()
         pass
     else:
         print "DTPWeb Server down. Database not exist"
         sys.exit(1)
 
-    db._read_sets()
+    dbase._read_sets()
     print "opened database"
     #ice_create_lock()
 
-    server = ThreadedHTTPServer(('', int(db.sets['server_port'])), Handler)
+    server = ThreadedHTTPServer(('', int(dbase.sets['server_port'])), Handler)
     
-    print 'Start dIceCash Server v %s [%s]' % (VERSION,db.sets['server_port'])
-    db.close()
+    print 'Start dIceCash Server v %s [%s]' % (VERSION,dbase.sets['server_port'])
+    dbase.close()
 
-    if db.sets['dev_scanner']!='None' and db.sets['dev_scanner']!='':
-        startservice("su kassir -c \"python serialtokbd.py %s\"" % db.sets['dev_scanner'])
+    if dbase.sets['dev_scanner']!='None' and dbase.sets['dev_scanner']!='':
+        startservice("su kassir -c \"python serialtokbd.py %s\"" % dbase.sets['dev_scanner'])
         print "start service rs232 scanner"
 
     #startservice("python dUpload.py start_upload")

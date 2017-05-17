@@ -523,6 +523,17 @@
        _result("Смена открыта");
        reg_refresh();
     }
+    function continuePrint(){
+        rf();
+        r=_getdata("/cmd/prn/continuePrint");
+        if (r=="0"){
+            return;
+        }
+        rf();
+        popup.hidden=true;
+        _result("Продолжить печать");
+        reg_refresh();
+    }
     function fullscreen(){
         if (fullScreen){
             fullScreen=false;
@@ -1325,7 +1336,8 @@
             chtypebonus();
             return;
         }
-        if (key==121){ //F10 Не занято
+        if (key==121){ //F10 
+            continuePrint();
             return;
         }
         if (key==122){

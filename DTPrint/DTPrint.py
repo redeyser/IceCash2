@@ -6,7 +6,7 @@
     License GPL
     writed by Romanenko Ruslan
     redeyser@gmail.com
-    2017-03-12
+    2017-04-09
 """
 
 import xml.etree.ElementTree as etree
@@ -27,7 +27,7 @@ import json
 
 import dbDTPrint
 
-VERSION="1.0.028"
+VERSION="1.0.030"
 MAX_PRINTERS = 16
 CMD_SHTRIHM = [\
         "_beep",\
@@ -971,6 +971,9 @@ class Handler(BaseHTTPRequestHandler):
 
         if cm_command == "_cancelcheck":
             self.ep._cancelcheck()
+
+        if cm_command == "_continueprint":
+            self.ep.continuePrint()
 
         if cm_command == "_discount":
             self.ep._discount(\

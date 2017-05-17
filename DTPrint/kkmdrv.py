@@ -9,7 +9,7 @@ Redeyser FR-K Python interface
 =================================================================
 Переработанный драйвер под общий вид с fprint
 """
-VERSION = '2.0.026'
+VERSION = '2.0.029'
 PORT = '/dev/ttyS0' #'COM1'
 #Commands
 DEBUG = 0
@@ -147,6 +147,12 @@ NAK = chr(0x15)
 
 MAX_TRIES = 10 # Кол-во попыток
 MIN_TIMEOUT = 0.05
+T1 = 0.5
+T5 = 12
+
+# Две секунды ждем после оплаты чека, пока он допечатается. 
+# Только потом принимаем новые запросы
+TIMEOUT_AFTER_CLOSECHECK = 2
 
 DEFAULT_ADM_PASSWORD = bufStr(0x1e,0x0,0x0,0x0) #Пароль админа по умолчанию = 30
 DEFAULT_PASSWORD     = bufStr(0x1,0x0,0x0,0x0)  #Пароль кассира по умолчанию = 1
@@ -240,7 +246,65 @@ class KKM:
                         return 1
                 return 0
 
-        def __readAnswerFast(self):
+        # Метод из fprint. Попытка чтения конкретного байта в течении 10 секунд        
+        def _read_byte(self,b,max_timeout=T5):
+            _continue = True
+            timeout=0
+            while _continue:
+                try:
+                    self.answerbyte = self.conn.read (1)
+                except:
+                    self.answerbyte=""
+                if (timeout>max_timeout)or(len(self.answerbyte) > 0):
+                    break
+                else:
+                    time.sleep(T1)
+                    timeout=timeout+T1
+                    print "timequery: %d" % timeout
+            if (b==self.answerbyte):
+                return True
+            else:
+                print "error len="+str(len(self.answerbyte))+",b="+hexStr(b)
+                return False
+
+        def __readAnswer(self):
+                """Считать ответ ККМ ожидая ответ"""
+                """ Обновленный метод чтения ответа.
+                    Во первых, читаем в цикле байт ACK потом STX
+                    Попытка чтения в течении 10 секунд.
+                    То есть ловим ответ в это время, вмето того чтобы тупо спать (sleep)
+                """
+                if self._read_byte(ACK):
+                    if self._read_byte(STX):
+                        length   = ord(self.conn.read(1))
+                        cmd      = self.conn.read(1)
+                        errcode  = self.conn.read(1)
+                        data     = self.conn.read(length-2)
+                        if length-2!=len(data):
+                             self.conn.write(NAK)
+                             raise RuntimeError("Length (%i) not equal length of data (%i)" % (length, len(data)))
+                        rcrc   = self.conn.read(1)
+                        mycrc = LRC(chr(length)+cmd+errcode+data)
+                        if rcrc!=mycrc:
+                             self.conn.write(NAK)
+                             raise RuntimeError("Wrong crc %i must be %i " % (mycrc,ord(rcrc)))
+                        self.conn.write(ACK)
+                        self.conn.flush()
+                        if ord(errcode)!=0:
+                             print "KKM EXEPTION:",ord(errcode)
+                             #raise kkmException(ord(errcode))
+                        return {'cmd':cmd,'errcode':ord(errcode),'data':data}
+                    else:
+                        print "a!=STX"
+                        raise RuntimeError("a!=STX %s %s" % (hex(ord(a)),hex(ord(STX))))
+                elif self.answerbyte==NAK:
+                    print "NAK"
+                    return None
+                else:
+                    print "a!=ACK"
+                    raise RuntimeError("a!=ACK %s %s" % (hex(ord(a)),hex(ord(ACK))))
+                    
+        def __readAnswerFast_old(self):
             a = self.conn.read(5)
             if a[0]==ACK:
                 if a[1]==STX:
@@ -267,7 +331,7 @@ class KKM:
                 return None
 
 
-        def __readAnswer(self):
+        def __readAnswer_old(self):
                 """Считать ответ ККМ"""
                 a = self.conn.read(1)
                 if a==ACK:
@@ -336,14 +400,21 @@ class KKM:
                 return errcode
                 
         def getFieldStruct(self,table,field):
-                """Request short status info"""
+                """Request struct field of table"""
                 self.__clearAnswer()
                 self.__sendCommand(0x2e,DEFAULT_ADM_PASSWORD + chr(table)+chr(field))
-                a = self.__readAnswerFast()
+                a = self.__readAnswer()
                 cmd,errcode,data = (a['cmd'],a['errcode'],a['data'])
                 self.LAST_ERROR = errcode
-                size=ord(data[41])
-                self.FieldStruct=[ord(data[40]),size,data2int(data,42,size),data2int(data,42+size,size),data[0:40]]
+                _type=ord(data[40])
+                _size=ord(data[41])
+                if _type==0:
+                    minval=data2int(data,42,_size)
+                    maxval=data2int(data,42+_size,_size)
+                else:
+                    minval=0
+                    maxval=0
+                self.FieldStruct=[_type,_size,minval,maxval,data[0:40]]
                 return errcode
 
         def shortStatusRequest(self):
@@ -539,9 +610,10 @@ class KKM:
             btaxes = "%s%s%s%s" % tuple(map(lambda x: chr(x), taxes))
             btext  = text.encode('cp1251').ljust(40,chr(0x0))
             self.__sendCommand(0x85,self.password+bsumma+bsumma2+bsumma3+bsumma4+bsale+btaxes+btext)
-            time.sleep(0.7) 
             a = self.__readAnswer()
-            time.sleep(0.5) 
+            # Предположительно, ответ приходит раньше чем чек реально допечатается.
+            # Возможно, ответ приходит сразу после отправки в ОФД
+            time.sleep(TIMEOUT_AFTER_CLOSECHECK) 
             cmd,errcode,data = (a['cmd'],a['errcode'],a['data'])
             self.OP_CODE    = ord(data[0])
             return errcode
@@ -699,7 +771,7 @@ class KKM:
                 self.__clearAnswer()
                 drow    = pack('i',row).ljust(2,chr(0x0))[:2]
                 self.__sendCommand(0x1f,DEFAULT_ADM_PASSWORD+chr(table)+drow+chr(field))
-                a = self.__readAnswerFast()
+                a = self.__readAnswer()
                 cmd,errcode,data = (a['cmd'],a['errcode'],a['data'])
                 if (f_type==1):
                     self.FieldData=data[0:data[0:40].find("\x00")].rstrip(). decode('cp1251').encode('utf8')
@@ -799,7 +871,7 @@ class KKM:
                     bts=data[b:b+40]
                     self.__sendCommand(0xC0,self.password+chr(line)+bts)
                     line+=1
-                    a = self.__readAnswerFast()
+                    a = self.__readAnswer()
                 return a['errcode']
 
         def loadGraphFile(self,nfile):

@@ -7,7 +7,7 @@ import xml.etree.ElementTree as etree
 import re
 from my import curdate2my
 from datetime import datetime
-
+import dbIceCash as db
 ns={\
 "c":"http://fsrar.ru/WEGAIS/Common",\
 "wbr":"http://fsrar.ru/WEGAIS/TTNInformBReg",\
@@ -21,7 +21,8 @@ ns={\
 "qp":"http://fsrar.ru/WEGAIS/QueryParameters",\
 'tc':"http://fsrar.ru/WEGAIS/Ticket",\
 "rst":"http://fsrar.ru/WEGAIS/ReplyRests",\
-'wa':"http://fsrar.ru/WEGAIS/ActTTNSingle"
+'wa':"http://fsrar.ru/WEGAIS/ActTTNSingle",\
+'ttn':"http://fsrar.ru/WEGAIS/ReplyNoAnswerTTN",\
 }
 
 XML_GET_CLIENTS=u"""<?xml version=\"1.0\" encoding=\"UTF-8\"?>
@@ -219,6 +220,28 @@ xmlns:qp="http://fsrar.ru/WEGAIS/QueryParameters"
 </ns:Documents>
 """
 
+XML_GET_NATTN="""<?xml version="1.0" encoding="UTF-8"?>
+<ns:Documents Version="1.0"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:ns="http://fsrar.ru/WEGAIS/WB_DOC_SINGLE_01"
+xmlns:qp="http://fsrar.ru/WEGAIS/QueryParameters">
+
+<ns:Owner>
+    <ns:FSRAR_ID>%fsrar_id%</ns:FSRAR_ID>
+</ns:Owner>
+<ns:Document>
+    <ns:QueryNATTN>
+    <qp:Parameters>
+        <qp:Parameter>
+            <qp:Name>КОД</qp:Name>
+            <qp:Value>%fsrar_id%</qp:Value>
+        </qp:Parameter>
+    </qp:Parameters>
+    </ns:QueryNATTN>
+</ns:Document>
+</ns:Documents>
+"""
+
 class EgaisClient:
 
     def __init__(self,server_ip,server_port,db):
@@ -268,6 +291,8 @@ class EgaisClient:
     def _connect(self):
         if self._get(self.assm("/")):
             r=re.search("FSRAR-RSA-(\d+)",self.data)
+            if not r:
+                return False
             self.fsrar_id=r.group(1)
             return True
         else:
@@ -302,6 +327,15 @@ class EgaisClient:
         xml=XML_GET_REPLY.replace("%ttn%",ttn)
         xml=xml.replace("%fsrar_id%",self.fsrar_id).encode("utf8")
         r=self._sendxml("reply.xml","/opt/in/QueryResendDoc",xml)
+        return r
+
+    def _send_nattn(self):
+        if not self._connect():
+            return False
+        #self.db._truncate(db.TB_EGAIS_DOCS_NEED)
+        xml=XML_GET_NATTN.replace("%fsrar_id%",self.fsrar_id)
+        #.encode("utf8")
+        r=self._sendxml("nattn.xml","/opt/in/QueryNATTN",xml)
         return r
 
     def _get_ticket(self):
@@ -510,9 +544,7 @@ class EgaisClient:
                 self._delete(url)
 
             if typedoc=="{%s}ReplyRests" % ns["ns"]:
-                print "ReplyRests"
                 res['ReplyRests.Products']=self._reload_ostat(doc[0])
-                #print res['ReplyRests.Products']
                 self._delete_in(id)
                 self._delete(url)
 
@@ -522,7 +554,6 @@ class EgaisClient:
                         res['WayBill']+=1
                     else:
                         res['WayBill']=1
-                    print "WayBill"
                     self._delete(url)
                     pass
 
@@ -532,7 +563,6 @@ class EgaisClient:
                         res['WayBillAct']+=1
                     else:
                         res['WayBillAct']=1
-                    print "WayBillAct"
                     self._delete(url)
                     pass
 
@@ -544,6 +574,12 @@ class EgaisClient:
                         res['TTNInformBReg']=1
                     self._delete(url)
                     pass
+
+            if typedoc=="{%s}ReplyNoAnswerTTN" % ns["ns"]:
+                res['ReplyNoAnswerTTN']=self._read_nattn(doc[0])
+                self._delete_in(id)
+                self._delete(url)
+        
         return res
 
     def _recalc(self):
@@ -591,6 +627,7 @@ class EgaisClient:
         except:
             print "error:%s" % tag
             return False
+
 
     def _readhead_WayBill(self,tree):
         owner=tree.find("ns:Owner",ns)
@@ -706,6 +743,21 @@ class EgaisClient:
         del self.struct['wbr_Identity']
         return id
     
+    def _read_nattn(self,doc):
+        content=doc.find("ttn:ttnlist",ns)
+        self.db._truncate(db.TB_EGAIS_DOCS_NEED)
+        findtag=("ttn:WbRegID","ttn:ttnNumber","ttn:ttnDate","ttn:Shipper")
+        res=0
+        for t in content.findall("ttn:NoAnswer",ns):
+            struct={}
+            for tag in findtag:
+                val=t.find(tag,ns)
+                if val!=None:
+                    struct[tag.replace(":","_")] = val.text
+            res+=1
+            self.db._insert(db.TB_EGAIS_DOCS_NEED,struct)
+        return res
+
     def _reload_ostat(self,tree):
         products=tree.find("rst:Products",ns)
         if products==None:
@@ -840,6 +892,10 @@ class EgaisClient:
             id=self._readcontent_InformBReg(pos)
             self.db.egais_docs_ct_updId(iddoc,id,self.struct)
         return True
+
+    def _addReplyNoAnswerTTN(self,url,id,tree):
+        self.struct={}
+        content=self._readhead_InformBReg(tree)
 
     def _make_act(self,id):
         if not self.db.egais_get_mydoc(id):

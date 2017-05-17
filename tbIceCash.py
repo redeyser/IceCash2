@@ -1400,6 +1400,41 @@ class tb_egais_ostat(my.table):
     def _find(self,alccode):
         return self.query_all_select()+" where pref_AlcCode=%s" % (alccodea)
 
+class tb_egais_docs_need(my.table):
+    def __init__ (self,dbname):
+        my.table.__init__(self,dbname)
+        self.addfield('id','d')
+        self.addfield('ttn_WbRegID','s')
+        self.addfield('ttn_ttnNumber','s')
+        self.addfield('ttn_ttnDate','D')
+        self.addfield('ttn_Shipper','s')
+        self.record_add = self.fieldsorder[1:] 
+
+    def _create(self):
+        q="""
+        CREATE TABLE `%s` (
+          `id` int(12) NOT NULL AUTO_INCREMENT,
+          `ttn_WbRegID` char(40) DEFAULT NULL,
+          `ttn_ttnNumber` char(40) DEFAULT NULL,
+          `ttn_ttnDate` date default NULL,
+          `ttn_Shipper` char(40) DEFAULT NULL,
+          PRIMARY KEY (`id`),
+          KEY `idd` (`ttn_WbRegID`)
+        ) ENGINE=MyISAM DEFAULT CHARSET=utf8
+        """ % self.tablename
+        return q
+
+    def _add(self,struct):
+        return self.query_insert(struct)
+
+    def _gets(self):
+        self.query_all_select()
+        q="select *,"+\
+        "(select status from tb_egais_docs_hd as hd where ttn_WbRegID=hd.tc_RegId)as d_status"+\
+        " from tb_egais_docs_need order by ttn_ttnDate desc"
+        self.query_fields.append('d_status')
+        return q
+
 class tb_actions_hd(my.table):
     def __init__ (self,dbname):
         my.table.__init__(self,dbname)
