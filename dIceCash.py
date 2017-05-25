@@ -35,7 +35,7 @@ from clientEgais import *
 from chIceCash import _round
 
 MYSQL_HOST  = 'localhost'
-VERSION     = '2.0.074'
+VERSION     = '2.0.075'
 
 RULE_NO         = -1
 RULE_SELLER     = 10
@@ -1148,7 +1148,7 @@ class Handler(BaseHTTPRequestHandler):
             self.create_zet()
             self.zet._calc(False)
             del self.zet
-            j=json.dumps(self.db.Zet,ensure_ascii=False)
+            j=json.dumps(self.db.Zet,default=json_serial_str,ensure_ascii=False)
             self._writejson(j)
             return
         
@@ -1751,7 +1751,6 @@ class Handler(BaseHTTPRequestHandler):
                     ncheck=self.dtpclient.return_data
                     if int(ncheck)==0:
                         ncheck=self.db._trsc_last()+1
-                        #print "ncheck=",ncheck
                 else:
                     ncheck=self.db._trsc_last()+1
 
@@ -1766,7 +1765,8 @@ class Handler(BaseHTTPRequestHandler):
                         r=self.icerest.clear_zakaz(n)
                         f = f and r
                     del self.icerest
-            except:
+            except Exception, ex:
+                print ex
                 res=False
             finally:
                 ice_unlock()
@@ -2253,6 +2253,8 @@ if __name__ == '__main__':
         sys.exit(1)
 
     dbase._read_sets()
+    if not 'nofiscal_proc' in dbase.sets:
+        dbase._sets_add('magazine','nofiscal_proc','0')
     print "opened database"
     #ice_create_lock()
 

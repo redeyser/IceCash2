@@ -343,7 +343,12 @@ class chIceCash:
         self.dtpclient._cm(printer,"_printsh",{})
         return True
 
-    def _print_check(self,fiscal,nal,bnal,sdacha,ncheck):
+    def _print_check(self,fiscal,nal,bnal,sdacha,ncheck,copycheck=False):
+        """ ESCPOS чек или если нет ФРК, то способ печати не фискальный """
+        escpos = (self.db.sets["d_devtype"]=='ESCPOS' or self.db.sets["d_devtype"]=='ESCPOS_OLD')
+        nopos  = (self.db.sets["d_name"]=='None')
+        if escpos or nopos:
+            fiscal = 0
         self.ncheck=ncheck
         printer=self.db.sets["d_name"]
         d_ofd=self.db.sets["d_ofd"]
@@ -351,10 +356,6 @@ class chIceCash:
             ofd=False
         else:
             ofd=True
-        if self.db.sets["d_devtype"]=='ESCPOS' or self.db.sets["d_devtype"]=='ESCPOS_OLD':
-            escpos=True
-        else:
-            escpos=False
         _type=self.db.ch_head["type"]
         if _type==0:
             _ctype='sale'
@@ -373,19 +374,20 @@ class chIceCash:
             _idsystem=0
             _ispriz=False
 
-        if escpos or fiscal==0:
+        if fiscal==0:
             self.dtpclient._cm(printer,"prn_lines",{'text':self.db.sets["orgname"]+u"\nИНН "+self.db.sets["inn"],"width":0,"height":0,"font":1,"bright":0,"big":0,"invert":0})
             self.dtpclient._cm(printer,"prn_lines",{'text':self.db.sets["placename"]+u"\nКПП "+self.db.sets["kpp"],"width":0,"height":0,"font":1,"bright":10,"big":0,"invert":0})
 
         """ ОТКРЫТИЕ ЧЕКА """
-        if fiscal==1:
+        if not copycheck:
             if self.db.sets['d_ncheck']=='1':
                 self.dtpclient._cm(printer,"prn_lines",{'text':u"ЧЕК #"+str(ncheck),"width":0,"height":0,"font":1,"bright":10,"big":1,"align":"centers","invert":1})
             else:
                 self.dtpclient._cm(printer,"prn_lines",{'text':u"ТОВАРНЫЙ ЧЕК","width":0,"height":0,"font":1,"bright":10,"big":1,"align":"centers","invert":1})
-            if not self.dtpclient._cm(printer,"_opencheck",{'type':_ctype}):
-                return False
-            self.dtpclient._cm(printer,"_openbox",{})
+            if fiscal==1:
+                if not self.dtpclient._cm(printer,"_opencheck",{'type':_ctype}):
+                    return False
+                self.dtpclient._cm(printer,"_openbox",{})
         else:
             self.dtpclient._cm(printer,"prn_lines",{'text':u"КОПИЯ ЧЕКА #"+str(ncheck),"width":0,"height":0,"font":1,"bright":10,"big":1,"invert":1,"align":"centers"})
             self.db.ch_head["bonus_payed"]=1
@@ -451,7 +453,7 @@ class chIceCash:
                 continue
 
 
-            """ Печать строки для штриха или для старого варианта или если это копия чека """
+            """ Печать строки для штриха или для старого варианта или если это не фискальный чек """
             if not ofd or self.db.sets['d_devtype']=='KKM_SHTRIHM' or fiscal==0:
                 self.dtpclient._cm(printer,"prn_lines",{'text':pos['name'],"width":0,"height":0,"font":1,"bright":10,"big":0,"align":"left","invert":0})
             
@@ -477,18 +479,6 @@ class chIceCash:
                         'ofd'       : d_ofd }):
                 return False
 
-        #self.dtpclient._cm(printer,"_discount",{'islast':0,'issum':1,'isgrow':0,'summa':_round(1,2)})
-        
-        #""" ПОДЫТОГ """
-        #if not self.dtpclient._cm(printer,"_preitog",{}):
-        #    return False
-        
-
-        #""" ПРОВЕДЕНИЕ СУММОВОЙ СКИДКИ НА ВЕСЬ ЧЕК """
-        #if (not escpos)and(fiscal==1)and(_discount+_bonus_discount)>0:
-        #    if not self.dtpclient._cm(printer,"_discount",{'islast':0,'issum':1,'isgrow':0,'summa':_round(_discount+_bonus_discount,2)}):
-        #        return False
-
         """ ДИСКОНТНАЯ КАРТА """
         if self.db.ch_head["discount_card"]!="":
             self.dtpclient._cm(printer,"prn_lines",{'text':u"*** Дисконтная карта #"+self.db.ch_head["discount_card"],"width":0,"height":0,"font":1,"bright":10,"big":0})
@@ -497,7 +487,7 @@ class chIceCash:
 
         """ БОНУСНАЯ ВСТАВКА """
         if self.db.ch_head["bonus_card"]!="" and self.db.ch_head["bonus_payed"]!=2:
-            if fiscal==1:
+            if not copycheck:
                 if not self._bs_connect():
                     self.dtpclient.result_name=u":Нет связи с бонусной системой"
                     self._sets({"errors":"bs"})
@@ -584,12 +574,12 @@ class chIceCash:
         #return False
 
         """ НЕ ФИСКАЛЬНАЯ ПЕЧАТЬ ИТОГОВ """
-        if (fiscal==0)or(escpos):
+        if fiscal==0:
             sdacha=_round(nal-(_summa-_discount-_bonus_discount),2)
             self.dtpclient._cm(printer,"prn_sale_itog",{'vsego':_round(_summa,2),\
             'discount':_round(self.db.ch_head["discount_sum"]+self.db.ch_head["bonus_discount"],2),\
             'itogo':_round(_summa-_discount-_bonus_discount,2),'nal':_summa_pay,'bnal':_round(bnal,2),'sdacha':sdacha,'ch':" "})
-            if fiscal==1:
+            if not copycheck:
                 self.db.ch_head['date']=my.curdate2my()
                 self.db.ch_head['time']=my.curtime2my()
             self.dtpclient._cm(printer,"prn_head",{'ncheck':ncheck,'dt':self.db.ch_head['date'],'tm':self.db.ch_head['time']})
@@ -630,9 +620,31 @@ class chIceCash:
             print self.egais.data
             return False
 
+    def _isfiscal(self):
+        """ Вычисление. Будет ли чек фискальным """
+        try:
+            nofiscal_proc = float(self.db.sets['nofiscal_proc'])
+        except:
+            nofiscal_proc = 0
+        if nofiscal_proc != 0:
+            self.db._curZet_calc()
+            if not self.db.curZet['c_saled']:
+                real_proc = 0
+            else:
+                real_proc = self.db.curZet['c_nofiscal'] / self.db.curZet['c_saled']
+            print "PROC:",real_proc,nofiscal_proc
+            if real_proc > nofiscal_proc:
+                return 1
+            else:
+                return 0
+        else:
+            return 1
+
     def _copycheck(self,id):
         self._trsc_read(id)
-        if not self._print_check(0,self.db.ch_head['pay_nal'],self.db.ch_head['pay_bnal'],0,self.db.ch_head['ncheck']):
+        if not self._print_check(0,self.db.ch_head['pay_nal'],
+                                    self.db.ch_head['pay_bnal'],0,
+                                    self.db.ch_head['ncheck'],copycheck=True):
             self.error=self.dtpclient.result_name
             return False
         else:
@@ -653,6 +665,12 @@ class chIceCash:
         _bonus_discount=self.db.ch_head["bonus_discount"]
         _summa=self.db.ch_head["summa"]
         _type=self.db.ch_head["type"]
+        """ Определяем будет ли чек нефискальным """
+        """ Безналичный или ЕГАИС или возвратный чек всегда будет фискальным """
+        if bnal!=0 or self.isalco or _type==1:
+            isfiscal = 1
+        else:
+            isfiscal = self._isfiscal()
         if _type==0:
             self.sdacha=float(_round(nal+bnal-(_summa-_discount-_bonus_discount),2))
             n=nal-self.sdacha
@@ -670,7 +688,7 @@ class chIceCash:
                 self.error="-2"
                 return False
         try:
-            if not self._print_check(1,nal,bnal,self.sdacha,ncheck):
+            if not self._print_check(isfiscal,nal,bnal,self.sdacha,ncheck):
                 self.error=self.dtpclient.result_name
                 return False
         except:
@@ -683,10 +701,6 @@ class chIceCash:
             except:
                 pass
 
-        if self.db.sets["d_name"]=='None':
-            isfiscal=0
-        else:
-            isfiscal=1
         self.db._check_to_trsc(ncheck,nal,bnal,1,isfiscal)
         self.db._check_delete(self.iduser,0)
         return True

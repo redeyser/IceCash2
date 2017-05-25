@@ -683,14 +683,36 @@ class dbIceCash(my.db):
     def _trsc_updup(self,id1,id2,up):
         return self.run(self.tb_trsc_hd._updup(id1,id2,up))
 
+    def _curZet_calc(self):
+        if self._Zet_last():
+            idbegin = self.ZetLast['end_ncheck']+1
+        else:
+            idbegin=None
+        idend=None
+        calcSum  = self.get(self.tb_trsc_hd._calc_sum    (self.idplace,self.nkassa,idbegin,idend))[0]
+        calcCount = self.get(self.tb_trsc_hd._calc_count(self.idplace,self.nkassa,idbegin,None))[0]
+        fd=['c_sale',
+            'summa','summa_ret','summa_nal','summa_bnal',
+            'discount','bonus','bonus_discount',
+            'begin_ncheck','end_ncheck',
+            'c_nofiscal','c_saled','nf_summa','nf_discount','nf_bonus_discount']
+        self.curZet={}
+        for i in range(len(fd)):
+            self.curZet[fd[i]]=calcSum[i]
+        fd=['c_return','c_cancel','c_error']
+        for i in range(len(fd)):
+            try:
+                self.curZet[fd[i]]=int(calcCount[i])
+            except:
+                self.curZet[fd[i]]=0
+
     def _trsc_calc(self,idbegin=None,idend=None,full=True):
         self.run(self.tb_trsc_hd._recalc(idbegin,idend))
-        calcSum     = self.get(self.tb_trsc_hd._calc_sum    (idbegin,idend))[0]
-        calcCount   = self.get(self.tb_trsc_hd._calc_count  (idbegin,idend))[0]
+        calcSum     = self.get(self.tb_trsc_hd._calc_sum    (self.idplace,self.nkassa,idbegin,idend))[0]
+        calcCount   = self.get(self.tb_trsc_hd._calc_count  (self.idplace,self.nkassa,idbegin,idend))[0]
         if idend==None:
             self._trsc_last()
         else:
-            self._trsc_get_check(idend)
             self.trsc=self._trsc_hd
 
         self._trsc_get_check(idbegin)
@@ -704,22 +726,38 @@ class dbIceCash(my.db):
             self.Zet['summa_bnal']=0
             return False
 
-        fd=['c_sale','summa','summa_ret','summa_nal','summa_bnal','discount','bonus','bonus_discount','begin_ncheck','end_ncheck']
-        self.Zet={'begin_date':self.trsc_hd['date'],'begin_time':self.trsc_hd['time'],'end_date':self.trsc[3],'end_time':self.trsc[4]}
+        fd=['c_sale',
+            'summa','summa_ret','summa_nal','summa_bnal',
+            'discount','bonus','bonus_discount',
+            'begin_ncheck','end_ncheck',
+            'c_nofiscal','c_saled','nf_summa','nf_discount','nf_bonus_discount']
+
+        self.Zet={  'begin_date':self.trsc_hd['date'],
+                    'begin_time':self.trsc_hd['time'],
+                    'end_date':self.trsc[3],
+                    'end_time':self.trsc[4]}
+
         for i in range(len(fd)):
             self.Zet[fd[i]]=calcSum[i]
-                
+
         fd=['c_return','c_cancel','c_error']
         for i in range(len(fd)):
             try:
                 self.Zet[fd[i]]=int(calcCount[i])
             except:
                 self.Zet[fd[i]]=0
+
         if self.Zet['summa']!=None:
             self.Zet['vir']=self.Zet['summa']-self.Zet['discount']-self.Zet['bonus_discount']
             self.Zet['summa_nal']=self.Zet['vir']-self.Zet['summa_bnal']
         else:
             self.Zet['vir']=0
+
+        if self.Zet['nf_summa']!=None:
+            self.Zet['nf_vir']=self.Zet['nf_summa']-self.Zet['nf_discount']-self.Zet['nf_bonus_discount']
+        else:
+            self.Zet['nf_vir']=0
+
         #Расчитываем дату Зет отчета
         t=self.sets['begin_time'].split(':')
         t=datetime.timedelta(0,int(t[0])*60*60+int(t[1])*60)
@@ -736,13 +774,12 @@ class dbIceCash(my.db):
             return True
 
         calcCt=self.get(self.tb_trsc_hd._calc_ct(idbegin,idend))
-        fd=['section','idgroup','code','alco','paramf1','paramf2','paramf3','discount','bonus','bonus_discount']
+        fd=['section','idgroup','code','alco','paramf1','paramf2','paramf3','discount','bonus','bonus_discount','isfiscal']
         for d in calcCt:
             ct={}
             for i in range(len(d)):
                 ct[fd[i]]=d[i]
             self.Zet_ct.append(ct)
-
         return True
 
     def _trsc_last(self,_if=""):
@@ -1012,6 +1049,7 @@ class dbIceCash(my.db):
             self._sets_add('magazine','begin_time','06:00:00')
             self._sets_add('magazine','action','0')
             self._sets_add('magazine','sets','0')
+            self._sets_add('magazine','nofiscal_proc','0')
             
             self._sets_add('device','dev_scanner','')
             self._sets_add('device','d_name','None')
