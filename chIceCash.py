@@ -455,7 +455,7 @@ class chIceCash:
             
             """ Изменение цены. скидку вкручиваем в цену. Так требует ОФД """
             if pos['discount']>0 or pos['bonus_discount']>0:
-                _cena=_round((pos['paramf3']-pos['discount']-pos['bonus_discount'])/pos['paramf2'],2)
+                _cena=_round((pos['paramf1']*pos['paramf2']-pos['discount']-pos['bonus_discount'])/pos['paramf2'],2)
             else:
                 _cena=_round(pos['paramf1'],2)
             
@@ -865,25 +865,33 @@ class chIceCash:
             Таким образом, чтобы позиционные суммы оказались
             кратными округленным скидочным ценам 
             А также суммируем все откорректированные скидки
+            Суммы могут изменится, а следовательно изменится и сумма чека
         """
         discount=0
         discount_bonus=0
+        sumcheck=0
         for p in range(len(self.pos)):
             pos=self.pos[p]
             if pos['storno']!=1:
                 _summa=pos["paramf3"]
                 _count=pos["paramf2"]
+                _cenaSrc=pos["paramf1"]
                 dsum=pos["discount"]
                 bsum=pos["bonus_discount"]
-                """ Высчитываем цену после двух скидок и корректируем суммы скидок"""
-                _cena = float(_round((_summa-dsum-bsum)/_count, 2))
-                _nsumma=float(_round(_cena*_count,2))
-                delta = (_summa-_nsumma)-(dsum+bsum)
-                #print "delta:",delta,_summa,_cena,_count,dsum,bsum
-                if dsum>0:
+                """ Высчитываем цену после двух скидок
+                    Высчитываем сумму каждой позиции наиболее точно, без округления
+                """
+                _rsum = _cenaSrc*_count - dsum - bsum
+                _cena = float(_round(_rsum/_count, 2))
+                _rcount = float(_round(_rsum/_cena,3))
+                delta = (_count-_rcount)*_cena
+                if dsum!=0:
                     dsum+=delta
                 else:
                     bsum+=delta
+                _nsumma = float(_round(_cena*_count,2))
+                sumcheck+=_nsumma+dsum+bsum
+                pos['paramf3']=_nsumma
                 pos["discount"]=dsum
                 pos["bonus_discount"]=bsum
                 discount+=dsum
