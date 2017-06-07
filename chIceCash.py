@@ -29,6 +29,7 @@ MARK_MINPRICE       = "$"
 MARK_MAXSKID        = "%"
 MARK_ALCO           = "A"
 
+OFD_LINK = "t=20170603T2230&s=199.99&fn=871000010034410&i=9435&fp=1337907693&n=1"
 def _round(V,n):
     z=str(V.__format__(".4f")).split(".")
     if len(z)<2:
@@ -584,6 +585,25 @@ class chIceCash:
                 self.db.ch_head['date']=my.curdate2my()
                 self.db.ch_head['time']=my.curtime2my()
             self.dtpclient._cm(printer,"prn_head",{'ncheck':ncheck,'dt':self.db.ch_head['date'],'tm':self.db.ch_head['time']})
+            if not copycheck:
+                """ Эмуляция подвала ОФД """
+                self.dtpclient._cm(printer,"prn_sale_style",{'text':u"СНО:",'value':"ЕНВД",'ch':" "})
+                self.dtpclient._cm(printer,"prn_sale_style",{'text':u"Сумма без НДС:",
+                                                             'value':_round(_summa-_discount-_bonus_discount,2),'ch':" "})
+                self.dtpclient._cm(printer,"prn_sale_style",{'text':u"Сайт ФНС:",'value':"www.nalog.ru",'ch':" "})
+                self.dtpclient._cm(printer,"prn_sale_style",{'text':u"Пользователь:",'value':self.db.sets["orgname"],'ch':" "})
+                self.dtpclient._cm(printer,"prn_sale_style",{'text':u"ИНН:",'value':self.db.sets["inn"],'ch':" "})
+                self.dtpclient._cm(printer,"prn_sale_style",{'text':u"Смена:",'value':'64','ch':" "})
+                self.dtpclient._cm(printer,"prn_sale_style",{'text':u"Чек:",'value':str(ncheck),'ch':" "})
+                self.dtpclient._cm(printer,"prn_line",{'ch':" "})
+                self.dtpclient._cm(printer,"prn_sale_style",{'text':u"   Итог:",
+                                                             'value':_round(_summa-_discount-_bonus_discount,2),'ch':" "})
+                self.dtpclient._cm(printer,"prn_sale_style",{'text':u"   ФН:",'value':'8710000100344104','ch':" "})
+                self.dtpclient._cm(printer,"prn_sale_style",{'text':u"   ФД:",'value':'9435','ch':" "})
+                self.dtpclient._cm(printer,"prn_sale_style",{'text':u"   ФПД:",'value':'1337907693','ch':" "})
+                self.dtpclient._cm(printer,"prn_qr",{'text':OFD_LINK})
+                self.dtpclient._cm(printer,"_roll",{'count':2})
+
             if not escpos:
                 self.dtpclient._cm(printer,"_roll",{'count':5})
             self.dtpclient._cm(printer,"_printsh",{})
@@ -811,40 +831,40 @@ class chIceCash:
         """ Расчет скидки по позициям
             discount - по дисконтной карте
             bonus - по бонусной (максимально возможная)
+            Если это возврат, то не пересчитывем бонусы и скидки
         """
-        for p in range(len(self.pos)):
-            pos=self.pos[p]
-            dsum=0
-            bsum=0
+        if _type==0:
+            for p in range(len(self.pos)):
+                pos=self.pos[p]
+                dsum=0
+                bsum=0
 
-            if pos['storno']!=1:
-                (_minprice, _maxskid, _cena, _count, _summa, _mark, _dcount,_discount,_discount_bonus,_discount_pos,_bonus_pos) = getvars(pos)
+                if pos['storno']!=1:
+                    (_minprice, _maxskid, _cena, _count, _summa, _mark, _dcount,_discount,_discount_bonus,_discount_pos,_bonus_pos) = getvars(pos)
 
-                if _dcount==None:
-                    _dcount=_count
+                    if _dcount==None:
+                        _dcount=_count
 
-                """ Установка позиционного процента скидки, если он больше общего """
-                if _discount_pos>dp:
-                    _dp=_discount_pos
-                else:
-                    _dp=dp
+                    """ Установка позиционного процента скидки, если он больше общего """
+                    if _discount_pos>dp:
+                        _dp=_discount_pos
+                    else:
+                        _dp=dp
 
-                """ Высчитываем процентную скидку и новую цену """
-                if _discount_card and _mark.find(MARK_DENY_DISCOUNT)==-1:
-                    (_cena,dsum) = calc_discount(_cena,_dcount,_dp,_minprice)
-                """ Высчитываем максимально возможное списание бонусами, исходя из скидочной цены """
-                if _bonus_card and bt==1 and _mark.find(MARK_DENY_DISCOUNT)==-1:
-                    (_cena,bsum) = calc_discount(_cena,_count,bm,_minprice)
-                
-                #print "calc_discount:",_cena,_count,_summa,dsum
-                discount+=dsum
-                discount_bonus+=bsum
+                    """ Высчитываем процентную скидку и новую цену """
+                    if _discount_card and _mark.find(MARK_DENY_DISCOUNT)==-1:
+                        (_cena,dsum) = calc_discount(_cena,_dcount,_dp,_minprice)
+                    """ Высчитываем максимально возможное списание бонусами, исходя из скидочной цены """
+                    if _bonus_card and bt==1 and _mark.find(MARK_DENY_DISCOUNT)==-1:
+                        (_cena,bsum) = calc_discount(_cena,_count,bm,_minprice)
+                    
+                    #print "calc_discount:",_cena,_count,_summa,dsum
+                    discount+=dsum
+                    discount_bonus+=bsum
 
-            pos['discount']=dsum
-            pos['bonus_discount']=bsum
-            self.pos[p]=pos
-
-        cur_discount=discount_bonus
+                pos['discount']=dsum
+                pos['bonus_discount']=bsum
+                self.pos[p]=pos
 
         """ Если есть списание по бонусам, то корректируем его,
             в случае если накопления по карте меньше макимально возможной скидки
@@ -876,8 +896,6 @@ class chIceCash:
                     pos['bonus_discount']=bsum
                     self.pos[p]=pos
                     
-            discount_bonus=cur_discount
-
         """ Пересчитываем скидку и списание бонусов
             Таким образом, чтобы позиционные суммы оказались
             кратными округленным скидочным ценам 
@@ -901,13 +919,21 @@ class chIceCash:
                 _rsum = _cenaSrc*_count - dsum - bsum
                 _cena = float(_round(_rsum/_count, 2))
                 _rcount = float(_round(_rsum/_cena,3))
+                """ Неточность при получении суммы из новой цены
+                    из за округления последней
+                """
                 delta = (_count-_rcount)*_cena
                 if dsum!=0:
                     dsum+=delta
                 else:
                     bsum+=delta
-                _nsumma = float(_round(_cena*_count,2))
-                sumcheck+=_nsumma+dsum+bsum
+                """ Фискальная расчетная сумма позиции со скидками """
+                _fsumma = float(_round(_cena*_count,2))
+                """ Фискальная сумма без скидок """
+                _nsumma = _fsumma + dsum + bsum
+                """ Подгоняем общую сумму чека к фискальной (без скидок) """
+                sumcheck+=_nsumma
+                """ Мухлюем, меняем сумму позиции на фискальную без скидок """
                 pos['paramf3']=_nsumma
                 pos["discount"]=dsum
                 pos["bonus_discount"]=bsum
