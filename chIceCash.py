@@ -463,7 +463,7 @@ class chIceCash:
                 _cena=_round((pos['paramf1']*pos['paramf2']-pos['discount']-pos['bonus_discount'])/pos['paramf2'],2)
             else:
                 _cena=_round(pos['paramf1'],2)
-            #print pos['paramf1']*pos['paramf2'],pos['discount'],pos['bonus_discount'],pos['paramf2'],_cena
+            print pos['paramf1']*pos['paramf2'],pos['paramf3'],pos['paramf1'],pos['paramf2'],_cena
             
             if not self.dtpclient._cm(printer,"prn_sale_short",\
                     {   'fiscal'    : fiscal,\
@@ -894,59 +894,47 @@ class chIceCash:
                         bsum=float(_round(pos["bonus_discount"]*p_correct,2))
                         discount_bonus+=bsum
                     pos['bonus_discount']=bsum
-                    self.pos[p]=pos
                     
-        """ Пересчитываем скидку и списание бонусов
-            Таким образом, чтобы позиционные суммы оказались
-            кратными округленным скидочным ценам 
-            А также суммируем все откорректированные скидки
-            Суммы могут изменится, а следовательно изменится и сумма чека
+        """ Округление каждой скидки в позициях 
+            может дать итоговую сумму не равную допускаемой скидке 
+            Разницу впихиваем в первую попавшуюся позицию со списанием бонусов """
+        if cur_discount!=discount_bonus:
+            for p in range(len(self.pos)):
+                pos=self.pos[p]
+                if pos['storno']!=1 and pos['paramf3']!=0 and pos['bonus_discount']!=0:
+                    pos["bonus_discount"]+=(cur_discount-discount_bonus)
+                    break;
+        """ 
+            Высчитываем фискальные суммы и вычисляем сумму чека по ним
         """
         discount=0
         discount_bonus=0
         sumcheck=0
         for p in range(len(self.pos)):
             pos=self.pos[p]
-            if pos['storno']!=1:
+            if pos['storno']!=1 and pos['paramf1']!=0:
                 _summa=pos["paramf3"]
                 _count=pos["paramf2"]
                 _cenaSrc=pos["paramf1"]
                 dsum=pos["discount"]
                 bsum=pos["bonus_discount"]
-                """ Высчитываем цену после двух скидок
-                    Высчитываем сумму каждой позиции наиболее точно, без округления
-                """
+                # Сумма позиции с учетом скидок
                 _rsum = _cenaSrc*_count - dsum - bsum
+                # Фискальная цена (для ФРК)
                 _cena = float(_round(_rsum/_count, 2))
-                _rcount = float(_round(_rsum/_cena,3))
-                """ Неточность при получении суммы из новой цены
-                    из за округления последней
-                """
-                delta = (_count-_rcount)*_cena
-                if dsum!=0:
-                    dsum+=delta
-                else:
-                    bsum+=delta
-                """ Фискальная расчетная сумма позиции со скидками """
+                """ Фискальная цена полле округления вероятно не будет кратна 
+                    сумме позиции с учетом скидок 
+                    Это несоответствие мы прячем в итоговой сумме без скидок
+                    Таким образом, мы сознательно нарушаем математику позиции
+                    Чтобы в итоге сумма чека была равна фискальной сумме """
                 _fsumma = float(_round(_cena*_count,2))
-                """ Фискальная сумма без скидок """
+                #Фискальная сумма без скидок
                 _nsumma = _fsumma + dsum + bsum
-                """ Подгоняем общую сумму чека к фискальной (без скидок) """
                 sumcheck+=_nsumma
-                """ Мухлюем, меняем сумму позиции на фискальную без скидок """
                 pos['paramf3']=_nsumma
-                pos["discount"]=dsum
-                pos["bonus_discount"]=bsum
                 discount+=dsum
                 discount_bonus+=bsum
                 pos["bonus"]=0
-                self.pos[p]=pos
-
-        """ В результате округлений, сумма списания бонусов
-            может оказаться немного больше суммы накоплений
-            Бонусный сервер должен допускать списание в минул
-            на копеечные суммы
-        """
 
         """ Последний этап, это начисление бонусов 
             Бонусы начисляются только если не было скидки по дисконтной карте
@@ -980,7 +968,6 @@ class chIceCash:
                     bonus+=bsum
 
                 pos['bonus']=bsum
-                self.pos[p]=pos
 
         """ Записываем изменения в чек """
         self._pos_write()

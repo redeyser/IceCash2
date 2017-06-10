@@ -713,6 +713,7 @@ class dbIceCash(my.db):
         if idend==None:
             self._trsc_last()
         else:
+            self._trsc_get_check(idend)
             self.trsc=self._trsc_hd
 
         self._trsc_get_check(idbegin)
