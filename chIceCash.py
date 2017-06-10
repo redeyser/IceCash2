@@ -895,15 +895,15 @@ class chIceCash:
                         discount_bonus+=bsum
                     pos['bonus_discount']=bsum
                     
-        """ Округление каждой скидки в позициях 
-            может дать итоговую сумму не равную допускаемой скидке 
-            Разницу впихиваем в первую попавшуюся позицию со списанием бонусов """
-        if cur_discount!=discount_bonus:
-            for p in range(len(self.pos)):
-                pos=self.pos[p]
-                if pos['storno']!=1 and pos['paramf3']!=0 and pos['bonus_discount']!=0:
-                    pos["bonus_discount"]+=(cur_discount-discount_bonus)
-                    break;
+            """ Округление каждой скидки в позициях 
+                может дать итоговую сумму не равную допускаемой скидке 
+                Разницу впихиваем в первую попавшуюся позицию со списанием бонусов """
+            if cur_discount!=discount_bonus:
+                for p in range(len(self.pos)):
+                    pos=self.pos[p]
+                    if pos['storno']!=1 and pos['paramf3']!=0 and pos['bonus_discount']!=0:
+                        pos["bonus_discount"]+=(cur_discount-discount_bonus)
+                        break;
         """ 
             Высчитываем фискальные суммы и вычисляем сумму чека по ним
         """
