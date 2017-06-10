@@ -587,7 +587,7 @@ class chIceCash:
             self.dtpclient._cm(printer,"prn_head",{'ncheck':ncheck,'dt':self.db.ch_head['date'],'tm':self.db.ch_head['time']})
             if not copycheck:
                 """ Эмуляция подвала ОФД """
-                self.dtpclient._cm(printer,"prn_sale_style",{'text':u"СНО:",'value':"ЕНВД",'ch':" "})
+                self.dtpclient._cm(printer,"prn_sale_style",{'text':u"СНО:",'value':u"ЕНВД",'ch':" "})
                 self.dtpclient._cm(printer,"prn_sale_style",{'text':u"Сумма без НДС:",
                                                              'value':_round(_summa-_discount-_bonus_discount,2),'ch':" "})
                 self.dtpclient._cm(printer,"prn_sale_style",{'text':u"Сайт ФНС:",'value':"www.nalog.ru",'ch':" "})
