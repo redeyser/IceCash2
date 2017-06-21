@@ -31,6 +31,9 @@ MARK_ALCO           = "A"
 
 OFD_LINK = "t=20170603T2230&s=199.99&fn=871000010034410&i=9435&fp=1337907693&n=1"
 def _round(V,n):
+    return str(round(V,n))
+    """
+    Временно возвращаем обычное округление
     z=str(V.__format__(".4f")).split(".")
     if len(z)<2:
         return str(V)
@@ -68,6 +71,7 @@ def _round(V,n):
         s="."+s
     result=str(d)+s
     return result
+    """
 
 class chIceCash:
 
@@ -376,8 +380,12 @@ class chIceCash:
             _ispriz=False
 
         if fiscal==0:
-            self.dtpclient._cm(printer,"prn_lines",{'text':self.db.sets["orgname"]+u"\nИНН "+self.db.sets["inn"],"width":0,"height":0,"font":1,"bright":0,"big":0,"invert":0})
-            self.dtpclient._cm(printer,"prn_lines",{'text':self.db.sets["placename"]+u"\nКПП "+self.db.sets["kpp"],"width":0,"height":0,"font":1,"bright":10,"big":0,"invert":0})
+            self.dtpclient._cm(printer,"prn_lines",
+                {'text':self.db.sets["orgname"]+u"\nИНН "+self.db.sets["inn"],
+                 "width":0,"height":0,"font":1,"bright":0,"big":0,"invert":0})
+            self.dtpclient._cm(printer,"prn_lines",
+                {'text':self.db.sets["placename"]+u"\nКПП "+self.db.sets["kpp"],
+                 "width":0,"height":0,"font":1,"bright":10,"big":0,"invert":0})
 
         """ ОТКРЫТИЕ ЧЕКА """
         if not copycheck:
@@ -453,10 +461,15 @@ class chIceCash:
             if pos['storno']==1:
                 continue
 
-
             """ Печать строки для штриха или для старого варианта или если это не фискальный чек """
             if not ofd or self.db.sets['d_devtype']=='KKM_SHTRIHM' or fiscal==0:
-                self.dtpclient._cm(printer,"prn_lines",{'text':pos['name'],"width":0,"height":0,"font":1,"bright":10,"big":0,"align":"left","invert":0})
+                if self.db.sets['d_devtype']=='KKM_SHTRIHM':
+                    _font = 1
+                else:
+                    _font = 3
+                self.dtpclient._cm(printer, "prn_lines",
+                                            {'text':pos['name'],"width":0,"height":0,
+                                            "font":_font,"bright":10,"big":0,"align":"left","invert":0})
             
             """ Изменение цены. скидку вкручиваем в цену. Так требует ОФД """
             if pos['discount']>0 or pos['bonus_discount']>0:
@@ -921,7 +934,7 @@ class chIceCash:
                 # Сумма позиции с учетом скидок
                 _rsum = _cenaSrc*_count - dsum - bsum
                 # Фискальная цена (для ФРК)
-                _cena = float(_round(_rsum/_count, 2))
+                _cena = float(_round(_rsum/_count, 2)) if _count>0 else 0
                 """ Фискальная цена полле округления вероятно не будет кратна 
                     сумме позиции с учетом скидок 
                     Это несоответствие мы прячем в итоговой сумме без скидок

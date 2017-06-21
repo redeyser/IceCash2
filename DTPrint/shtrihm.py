@@ -453,11 +453,9 @@ class frk:
     """ Печать в стиле Цена X Количество = Стоимость, второй строчкой бонус и дисконт """
     def prn_sale_short(self,fiscal,title,_type,section,realcena,p1,p2,p3,ch1,b,d,ch2,ofd):
         if fiscal!=1:
-            text="["+str(section)+"] "+p2+" X "+p1
-            val="="+p3
-            lt=len(text)
-            lv=len(val)
-            ld=self.MAX_WIDTH-lv
+            text=str(section)
+            val=p2+" X "+p1+" ="+p3
+            ld=self.MAX_WIDTH-len(val)
             stext=text.ljust(ld,ch1)
             s=stext+val
             self.prn_lines(s,font=0)
@@ -628,7 +626,6 @@ class frk:
         qr_code.make(fit=True)
         qr_img = qr_code.make_image()
         im = qr_img._img.convert("RGB")
-        print "qrcode"
         return self.print_image(im)
 
     def writesets_text(self,text12,text13,text14):

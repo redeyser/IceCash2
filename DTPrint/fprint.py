@@ -1107,21 +1107,16 @@ class KKM_FPRINT:
     """ Печать в стиле Цена X Количество = Стоимость, второй строчкой бонус и дисконт """
     def prn_sale_short(self,fiscal,title,_type,section,realcena,p1,p2,p3,ch1,b,d,ch2,ofd):
         if fiscal!=1:
-            text="["+str(section)+"] "+p2+" X "+p1
-            val="="+p3
-            lt=len(text)
-            lv=len(val)
-            ld=self.MAX_WIDTH-lv
+            text=" "+str(section).rjust(2,"0")
+            val=p2+" X "+p1+" ="+p3
+            ld=self.MAX_WIDTH-len(val)
             stext=text.ljust(ld,ch1)
             s=stext+val
-            self.prn_lines(s,font=0)
+            self.prn_lines(s,font=3)
         else:
             if ofd:
-                #if _type=='sale':
                 """ 2.0.69 Теперь регистрация позиции в любом случае """
                 self._registerpos(title,realcena,p2,section=section)
-                #else:
-                    #self._returnpos(title,realcena,p2,section=section)
             else:
                 if _type=='sale':
                     self._register(p1,p2,section=section)
