@@ -31,9 +31,7 @@ MARK_ALCO           = "A"
 
 OFD_LINK = "t=20170603T2230&s=199.99&fn=871000010034410&i=9435&fp=1337907693&n=1"
 def _round(V,n):
-    return str(round(V,n))
-    """
-    Временно возвращаем обычное округление
+    #return str(round(V,n))
     z=str(V.__format__(".4f")).split(".")
     if len(z)<2:
         return str(V)
@@ -71,7 +69,6 @@ def _round(V,n):
         s="."+s
     result=str(d)+s
     return result
-    """
 
 class chIceCash:
 

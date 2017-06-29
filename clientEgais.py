@@ -21,7 +21,7 @@ ns={\
 "qp":"http://fsrar.ru/WEGAIS/QueryParameters",\
 'tc':"http://fsrar.ru/WEGAIS/Ticket",\
 "rst":"http://fsrar.ru/WEGAIS/ReplyRests",\
-'wa':"http://fsrar.ru/WEGAIS/ActTTNSingle",\
+'wa':"http://fsrar.ru/WEGAIS/ActTTNSingle_v2",\
 'ttn':"http://fsrar.ru/WEGAIS/ReplyNoAnswerTTN",\
 }
 
@@ -141,7 +141,7 @@ xmlns:wa= \"http://fsrar.ru/WEGAIS/ActTTNSingle\">
     <ns:FSRAR_ID>%fsrar_id%</ns:FSRAR_ID>
 </ns:Owner>
 <ns:Document>
-  <ns:WayBillAct>
+  <ns:WayBillAct_v2>
     <wa:Header>
         <wa:IsAccept>%accept%</wa:IsAccept>
         <wa:ACTNUMBER>%iddoc%</wa:ACTNUMBER>
@@ -152,7 +152,7 @@ xmlns:wa= \"http://fsrar.ru/WEGAIS/ActTTNSingle\">
     <wa:Content>
         %content%
     </wa:Content>
-  </ns:WayBillAct>
+  </ns:WayBillAct_v2>
 </ns:Document>
 </ns:Documents>
 """
@@ -160,7 +160,7 @@ xmlns:wa= \"http://fsrar.ru/WEGAIS/ActTTNSingle\">
 XML_ACT_CONTENT="""
 <wa:Position>
 \t<wa:Identity>%identity%</wa:Identity>
-\t<wa:InformBRegId>%wb_RegId%</wa:InformBRegId>
+\t<wa:InformF2RegId>%wb_RegId%</wa:InformF2RegId>
 \t<wa:RealQuantity>%real%</wa:RealQuantity>
 </wa:Position>
 """
@@ -557,7 +557,7 @@ class EgaisClient:
                     self._delete(url)
                     pass
 
-            if typedoc=="{%s}WayBillAct" % ns["ns"]:
+            if typedoc=="{%s}WayBillAct" % ns["ns"] or typedoc=="{%s}WayBillAct_v2" % ns["ns"]:
                 if self._addWayBillAct(url,id,tree):
                     if res.has_key("WayBillAct"):
                         res['WayBillAct']+=1
@@ -829,7 +829,7 @@ class EgaisClient:
             else:
                 self.struct['status']    = 6
         self.struct['xml_ticket']= self.data
-        self.struct['ns_typedoc']= "WayBillAct"
+        self.struct['ns_typedoc']= "WayBillAct_v2"
         self.struct['wt_IsConfirm']=self.struct['wa_IsAccept']
         del self.struct['wa_IsAccept']
 
