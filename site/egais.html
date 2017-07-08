@@ -14,6 +14,8 @@
         <tr class="ice sel" onclick='_get_nattn();'><td>Просмотр неотвеченных</td></tr>
         <tr class="ice sel" onclick='_get_list();'><td>Просмотр</td></tr>
         <tr class="ice sel" onclick='_create_doc(0);'><td>Создать документ</td></tr>
+        <tr class="ice sel" onclick='_send_version(1);'><td>Version_1</td></tr>
+        <tr class="ice sel" onclick='_send_version(2);'><td>Version_2</td></tr>
         <tr class="ice bold sel" onclick='_relocate("/");'><td>В начало</td></tr>
     </table>
 
@@ -303,6 +305,10 @@
   }
   function _send_nattn(){
     r=_getdata("/egais/send/nattn");
+        foo.innerHTML=r;
+  }
+  function _send_version(ver){
+    r=_getdata("/egais/send/version?version="+ver);
         foo.innerHTML=r;
   }
   function _send_ostat(){

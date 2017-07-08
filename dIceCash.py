@@ -35,7 +35,7 @@ from clientEgais import *
 from chIceCash import _round
 
 MYSQL_HOST  = 'localhost'
-VERSION     = '2.0.078'
+VERSION     = '2.0.079'
 
 RULE_NO         = -1
 RULE_SELLER     = 10
@@ -731,6 +731,16 @@ class Handler(BaseHTTPRequestHandler):
         if parsed_path.path=='/egais/send/nattn':
             self.create_egais()
             if not self.egais._send_nattn():
+                self._writetxt(POST_FALSE)
+                return
+            self._writetxt(POST_TRUE)
+            del self.egais
+            return
+
+        if parsed_path.path=='/egais/send/version':
+            version=self._getval('version',1)
+            self.create_egais()
+            if not self.egais._send_version(version):
                 self._writetxt(POST_FALSE)
                 return
             self._writetxt(POST_TRUE)

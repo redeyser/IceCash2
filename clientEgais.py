@@ -10,39 +10,57 @@ from datetime import datetime
 import dbIceCash as db
 ns={\
 "c":"http://fsrar.ru/WEGAIS/Common",\
-"wbr":"http://fsrar.ru/WEGAIS/TTNInformBReg",\
-"pref":"http://fsrar.ru/WEGAIS/ProductRef",\
-"oref":"http://fsrar.ru/WEGAIS/ClientRef",\
-"rc":"http://fsrar.ru/WEGAIS/ReplyClient",\
+"wbr":"http://fsrar.ru/WEGAIS/TTNInformF2Reg",\
+"pref":"http://fsrar.ru/WEGAIS/ProductRef_v2",\
+"oref":"http://fsrar.ru/WEGAIS/ClientRef_v2",\
+"rc":"http://fsrar.ru/WEGAIS/ReplyClient_v2",\
 "ns":"http://fsrar.ru/WEGAIS/WB_DOC_SINGLE_01",\
-"wb":"http://fsrar.ru/WEGAIS/TTNSingle",\
+"wb":"http://fsrar.ru/WEGAIS/TTNSingle_v2",\
 "xsi":"http://www.w3.org/2001/XMLSchema-instance",\
 "wt":"http://fsrar.ru/WEGAIS/ConfirmTicket",
 "qp":"http://fsrar.ru/WEGAIS/QueryParameters",\
 'tc':"http://fsrar.ru/WEGAIS/Ticket",\
-"rst":"http://fsrar.ru/WEGAIS/ReplyRests",\
+"rst":"http://fsrar.ru/WEGAIS/ReplyRests_v2",\
 'wa':"http://fsrar.ru/WEGAIS/ActTTNSingle_v2",\
 'ttn':"http://fsrar.ru/WEGAIS/ReplyNoAnswerTTN",\
+'qp':"http://fsrar.ru/WEGAIS/InfoVersionTTN"
 }
+
+XML_VERSION=u"""<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<ns:Documents Version=\"1.0\"
+xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"
+xmlns:ns=\"http://fsrar.ru/WEGAIS/WB_DOC_SINGLE_01\"
+xmlns:qp=\"http://fsrar.ru/WEGAIS/InfoVersionTTN\">
+<ns:Owner>
+    <ns:FSRAR_ID>%fsrar_id%</ns:FSRAR_ID>
+</ns:Owner>
+<ns:Document>
+    <ns:InfoVersionTTN>
+        <qp:ClientId>%fsrar_id%</qp:ClientId>
+        <qp:WBTypeUsed>%VERSION%</qp:WBTypeUsed>
+    </ns:InfoVersionTTN>
+</ns:Document>
+</ns:Documents>
+"""
 
 XML_GET_CLIENTS=u"""<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <ns:Documents Version=\"1.0\"
 xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"
 xmlns:ns=\"http://fsrar.ru/WEGAIS/WB_DOC_SINGLE_01\"
-xmlns:oref=\"http://fsrar.ru/WEGAIS/ClientRef\"
+xmlns:oref=\"http://fsrar.ru/WEGAIS/ClientRef_v2\"
 xmlns:qp=\"http://fsrar.ru/WEGAIS/QueryParameters\">
 <ns:Owner>
     <ns:FSRAR_ID>%fsrar_id%</ns:FSRAR_ID>
 </ns:Owner>
 <ns:Document>
-    <ns:QueryClients>
+    <ns:QueryClients_v2>
         <qp:Parameters>
             <qp:Parameter>
             <qp:Name>ИНН</qp:Name>
             <qp:Value>%INN%</qp:Value>
         </qp:Parameter>
         </qp:Parameters>
-    </ns:QueryClients>
+    </ns:QueryClients_v2>
 </ns:Document>
 </ns:Documents>
 """
@@ -52,14 +70,14 @@ XML_SEND_WAYBILL_HEAD="""<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xmlns:ns= "http://fsrar.ru/WEGAIS/WB_DOC_SINGLE_01"
 xmlns:c="http://fsrar.ru/WEGAIS/Common"
-xmlns:oref="http://fsrar.ru/WEGAIS/ClientRef"
-xmlns:pref="http://fsrar.ru/WEGAIS/ProductRef"
-xmlns:wb="http://fsrar.ru/WEGAIS/TTNSingle">
+xmlns:oref="http://fsrar.ru/WEGAIS/ClientRef_v2"
+xmlns:pref="http://fsrar.ru/WEGAIS/ProductRef_v2"
+xmlns:wb="http://fsrar.ru/WEGAIS/TTNSingle_v2">
 <ns:Owner>
 <ns:FSRAR_ID>%fsrar_id%</ns:FSRAR_ID>
 </ns:Owner>
 <ns:Document>
-<ns:WayBill>
+<ns:WayBill_v2>
 <wb:Identity>%identity%</wb:Identity>
 
 <wb:Header>
@@ -70,19 +88,23 @@ xmlns:wb="http://fsrar.ru/WEGAIS/TTNSingle">
 <wb:UnitType>%packet%</wb:UnitType>
 
 <wb:Shipper>
+<oref:UL>
 <oref:INN>%inn%</oref:INN><oref:KPP>%kpp%</oref:KPP><oref:ClientRegId>%regid%</oref:ClientRegId>
 <oref:ShortName>%name%</oref:ShortName><oref:FullName>%name%</oref:FullName>
 <oref:address>
     <oref:Country>643</oref:Country><oref:description></oref:description>
 </oref:address>
+</oref:UL>
 </wb:Shipper>
 
 <wb:Consignee>
+<oref:UL>
 <oref:INN>%send_inn%</oref:INN><oref:KPP>%send_kpp%</oref:KPP><oref:ClientRegId>%send_regid%</oref:ClientRegId>
 <oref:ShortName>%send_name%</oref:ShortName><oref:FullName>%send_name%</oref:FullName>
 <oref:address>
     <oref:Country>643</oref:Country><oref:description></oref:description>
 </oref:address>
+</oref:UL>
 </wb:Consignee>
 
 <wb:Transport>
@@ -99,15 +121,16 @@ xmlns:wb="http://fsrar.ru/WEGAIS/TTNSingle">
 <wb:Content>
 %content%
 </wb:Content>
-</ns:WayBill>
+</ns:WayBill_v2>
 </ns:Document>
 </ns:Documents>
 """
 
 XML_SEND_WAYBILL_CONTENT="""
 <wb:Position>
-<wb:Quantity>%quantity%</wb:Quantity><wb:Price>%price%</wb:Price><wb:Identity>%identity%</wb:Identity><wb:InformA><pref:RegId>%inform_a%</pref:RegId></wb:InformA>
-<wb:InformB><pref:InformBItem><pref:BRegId>%inform_b%</pref:BRegId></pref:InformBItem></wb:InformB>
+<wb:Quantity>%quantity%</wb:Quantity><wb:Price>%price%</wb:Price><wb:Identity>%identity%</wb:Identity>
+<wb:InformF1><pref:RegId>%inform_a%</pref:RegId></wb:InformF1>
+<wb:InformF2><pref:InformF2Item><pref:F2RegId>%inform_b%</pref:F2RegId></pref:InformF2Item></wb:InformF2>
 <wb:Product>
 
 <pref:Type>%pref_type%</pref:Type><pref:FullName>%shortname%</pref:FullName>
@@ -118,12 +141,14 @@ XML_SEND_WAYBILL_CONTENT="""
 <pref:ProductVCode>%productvcode%</pref:ProductVCode>
 
 <pref:Producer>
+<oref:UL>
 <oref:INN>%inn%</oref:INN><oref:KPP>%kpp%</oref:KPP>
 <oref:ClientRegId>%regid%</oref:ClientRegId><oref:ShortName>%oref_shortname%</oref:ShortName>
 <oref:FullName>%oref_shortname%</oref:FullName>
 <oref:address>
     <oref:Country>643</oref:Country><oref:description></oref:description>
 </oref:address>
+<oref:UL>
 </pref:Producer>
 
 </wb:Product>
@@ -134,9 +159,9 @@ XML_SEND_ACT="""<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <ns:Documents Version=\"1.0\"
 xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"
 xmlns:ns= \"http://fsrar.ru/WEGAIS/WB_DOC_SINGLE_01\"
-xmlns:oref=\"http://fsrar.ru/WEGAIS/ClientRef\"
-xmlns:pref=\"http://fsrar.ru/WEGAIS/ProductRef\"
-xmlns:wa= \"http://fsrar.ru/WEGAIS/ActTTNSingle\">
+xmlns:oref=\"http://fsrar.ru/WEGAIS/ClientRef_v2\"
+xmlns:pref=\"http://fsrar.ru/WEGAIS/ProductRef_v2\"
+xmlns:wa= \"http://fsrar.ru/WEGAIS/ActTTNSingle_v2\">
 <ns:Owner>
     <ns:FSRAR_ID>%fsrar_id%</ns:FSRAR_ID>
 </ns:Owner>
@@ -193,7 +218,7 @@ xmlns:qp="http://fsrar.ru/WEGAIS/QueryParameters">
 <ns:FSRAR_ID>%fsrar_id%</ns:FSRAR_ID>
 </ns:Owner>
 <ns:Document>
-<ns:QueryRests></ns:QueryRests>
+<ns:QueryRests_v2></ns:QueryRests_v2>
 </ns:Document>
 </ns:Documents>
 """
@@ -310,7 +335,7 @@ class EgaisClient:
             return False
         xml=XML_GET_CLIENTS.replace("%INN%",self.db.sets['inn'])
         xml=xml.replace("%fsrar_id%",self.fsrar_id).encode("utf8")
-        r=self._sendxml("client.xml","/opt/in/QueryPartner",xml)
+        r=self._sendxml("client.xml","/opt/in/QueryClients_v2",xml)
         return r
 
     def _send_ostat(self):
@@ -318,7 +343,7 @@ class EgaisClient:
             return False
         xml=XML_GET_OSTAT.replace("%INN%",self.db.sets['inn'])
         xml=xml.replace("%fsrar_id%",self.fsrar_id).encode("utf8")
-        r=self._sendxml("rest.xml","/opt/in/QueryRests",xml)
+        r=self._sendxml("rest.xml","/opt/in/QueryRests_v2",xml)
         return r
 
     def _send_reply(self,ttn):
@@ -336,6 +361,18 @@ class EgaisClient:
         xml=XML_GET_NATTN.replace("%fsrar_id%",self.fsrar_id)
         #.encode("utf8")
         r=self._sendxml("nattn.xml","/opt/in/QueryNATTN",xml)
+        return r
+
+    def _send_version(self,version):
+        if not self._connect():
+            return False
+        if version==1:
+            ver="WayBill"
+        else:
+            ver="WayBill_v2"
+        xml=XML_VERSION.replace("%VERSION%",ver)
+        xml=xml.replace("%fsrar_id%",self.fsrar_id).encode("utf8")
+        r=self._sendxml("version.xml","/opt/in/InfoVersionTTN",xml)
         return r
 
     def _get_ticket(self):
@@ -356,7 +393,7 @@ class EgaisClient:
         xml=self._make_act(id)
         if xml=="":
             return False
-        r=self._sendxml("client.xml","/opt/in/WayBillAct",xml)
+        r=self._sendxml("client.xml","/opt/in/WayBillAct_v2",xml)
 
         reply_id=self._get_ticket()
 
@@ -370,7 +407,7 @@ class EgaisClient:
         xml=self._make_return(id)
         if xml=="":
             return False
-        r=self._sendxml("return.xml","/opt/in/WayBill",xml)
+        r=self._sendxml("return.xml","/opt/in/WayBill_v2",xml)
 
         reply_id=self._get_ticket()
 
@@ -402,7 +439,7 @@ class EgaisClient:
         xml=self._make_move(id)
         if xml=="":
             return False
-        r=self._sendxml("move.xml","/opt/in/WayBill",xml)
+        r=self._sendxml("move.xml","/opt/in/WayBill_v2",xml)
 
         reply_id=self._get_ticket()
 
@@ -417,7 +454,7 @@ class EgaisClient:
             "status":1,\
             "ns_FSRAR_ID"       :self.db.egais_doc_hd['recv_RegId'],\
             "wb_Identity"       :"0",\
-            "ns_typedoc"        :"WayBill",\
+            "ns_typedoc"        :"WayBill_v2",\
             
             "wb_Date"           :curdate2my(),\
             "wb_ShippingDate"   :curdate2my(),\
@@ -533,7 +570,7 @@ class EgaisClient:
                     pass
                 self._delete(url)
 
-            if typedoc=="{%s}ReplyClient" % ns["ns"]:
+            if typedoc=="{%s}ReplyClient_v2" % ns["ns"]:
                 if res.has_key("ReplyClient"):
                     res['ReplyClient']+=1
                 else:
@@ -543,12 +580,12 @@ class EgaisClient:
                 self._delete_in(id)
                 self._delete(url)
 
-            if typedoc=="{%s}ReplyRests" % ns["ns"]:
+            if typedoc=="{%s}ReplyRests_v2" % ns["ns"]:
                 res['ReplyRests.Products']=self._reload_ostat(doc[0])
                 self._delete_in(id)
                 self._delete(url)
 
-            if typedoc=="{%s}WayBill" % ns["ns"]:
+            if typedoc=="{%s}WayBill_v2" % ns["ns"]:
                 if self._addWayBill(url,id,tree):
                     if res.has_key("WayBill"):
                         res['WayBill']+=1
@@ -566,7 +603,7 @@ class EgaisClient:
                     self._delete(url)
                     pass
 
-            if typedoc=="{%s}TTNInformBReg" % ns["ns"]:
+            if typedoc=="{%s}TTNInformF2Reg" % ns["ns"]:
                 if self._addInformBReg(url,id,tree):
                     if res.has_key("TTNInformBReg"):
                         res['TTNInformBReg']+=1
@@ -606,6 +643,8 @@ class EgaisClient:
         struct={}
         self.db.egais_places_clear()
         for t in clients.findall("rc:Client",ns):
+            t=t.find("oref:OrgInfoV2",ns)
+            t=t.find("oref:UL",ns)
             a=t.find("oref:address",ns)
             for f in self.db.tb_egais_places.record_add:
                 r=t.find("oref:"+f,ns)
@@ -634,8 +673,12 @@ class EgaisClient:
         doc=tree.find("ns:Document",ns)
         doc=doc[0]
         header=doc.find("wb:Header",ns)
-        shipper=header.find("wb:Shipper",ns)
-        consignee=header.find("wb:Consignee",ns)
+
+        node=header.find("wb:Shipper",ns)
+        shipper=node.find("oref:UL",ns)
+
+        node=header.find("wb:Consignee",ns)
+        consignee=node.find("oref:UL",ns)
 
         self._setstruct(owner,"ns:FSRAR_ID")
         self._setstruct(doc,"wb:Identity")
@@ -665,7 +708,9 @@ class EgaisClient:
         doc=doc[0]
         header=doc.find("wbr:Header",ns)
         shipper=header.find("wbr:Shipper",ns)
+        shipper=shipper.find("oref:UL",ns)
         consignee=header.find("wbr:Consignee",ns)
+        consignee=consignee.find("oref:UL",ns)
 
         self._setstruct(shipper,"oref:ClientRegId","send_RegId")
         self._setstruct(consignee,"oref:ClientRegId","recv_RegId")
@@ -709,11 +754,13 @@ class EgaisClient:
         return regid
 
     def _readcontent_WayBill(self,pos):
-        informA=pos.find("wb:InformA",ns)
-        informB=pos.find("wb:InformB",ns)
-        informB=informB.find("pref:InformBItem",ns)
+        informA=pos.find("wb:InformF1",ns)
+        informB=pos.find("wb:InformF2",ns)
+        informB=informB.find("pref:InformF2Item",ns)
         product=pos.find("wb:Product",ns)
-        producer=product.find("pref:Producer",ns)
+
+        node=product.find("pref:Producer",ns)
+        producer=node.find("oref:UL",ns)
 
         self._setstruct(pos,"wb:Identity")
         self._setstruct(pos,"wb:Quantity")
@@ -722,7 +769,7 @@ class EgaisClient:
         self._setstruct(pos,"wb:Party")
 
         self._setstruct(informA,"pref:RegId")
-        self._setstruct(informB,"pref:BRegId")
+        self._setstruct(informB,"pref:F2RegId","pref_BRegId")
 
         self._setstruct(product,"pref:Type")
         if not self._setstruct(product,"pref:ShortName"):
@@ -738,7 +785,7 @@ class EgaisClient:
 
     def _readcontent_InformBReg(self,pos):
         self._setstruct(pos,"wbr:Identity")
-        self._setstruct(pos,"wbr:InformBRegId")
+        self._setstruct(pos,"wbr:InformF2RegId","wbr_InformBRegId")
         id=self.struct['wbr_Identity']
         del self.struct['wbr_Identity']
         return id
@@ -759,6 +806,10 @@ class EgaisClient:
         return res
 
     def _reload_ostat(self,tree):
+        replacing = {
+            'rst_InformARegId':'rst_InformF1RegId',
+            'rst_InformBRegId':'rst_InformF2RegId',
+        }
         products=tree.find("rst:Products",ns)
         if products==None:
             print "no products"
@@ -768,10 +819,15 @@ class EgaisClient:
         for t in products.findall("rst:StockPosition",ns):
             n=t.find("rst:Product",ns)
             p=n.find("pref:Producer",ns)
+            p=p.find("oref:UL",ns)
             a=p.find("oref:address",ns)
             struct={}
             for f in self.db.tb_egais_ostat.record_add:
-                xf=f.replace("_",":")
+                if f in replacing:
+                    rf=replacing[f]
+                else:
+                    rf=f
+                xf=rf.replace("_",":")
                 for x in (t,n,p,a):
                     r=x.find(xf,ns)
                     if r!=None:
@@ -843,7 +899,7 @@ class EgaisClient:
         self.struct['xml_doc']   = self.data
         self.struct['reply_id']  = id
         self.struct['url']       = url
-        self.struct['ns_typedoc']= "WayBill"
+        self.struct['ns_typedoc']= "WayBill_v2"
 
         content=self._readhead_WayBill(tree)
         if self.db.egais_docs_find(0,self.struct["recv_RegId"],self.struct["send_RegId"],self.struct["wb_NUMBER"]):
@@ -872,7 +928,7 @@ class EgaisClient:
                 return False
         if self.db.egais_doc[3] not in (0,3,5,6) :
             print "error:doc status=%d" % self.db.egais_doc[3]
-            return False
+            #return False
         iddoc=self.db.egais_doc[0]
         tc_regId=self.struct['tc_RegId']
         self.struct={}
@@ -883,7 +939,7 @@ class EgaisClient:
         self.struct['xml_inform']=self.data
         self.struct['url']=url
         #self.struct['reply_id']  = id
-        self.struct['ns_typedoc']= "InformBReg"
+        self.struct['ns_typedoc']= "InformF2Reg"
         self.struct['tc_RegId']=tc_regId
         #print self.struct;
         self.db.egais_docs_hd_upd(iddoc,self.struct)
@@ -949,7 +1005,7 @@ class EgaisClient:
                 "%quantity%"    :"real_Quantity",\
                 "%price%"       :"wb_Price",\
                 "%inform_a%"    :"pref_RegId",\
-                "%inform_b%"    :"wbr_InformBRegId",\
+                "%inform_b%"    :"wbr_InformF2RegId",\
                 "%shortname%"   :"pref_ShortName",\
                 "%alccode%"     :"pref_AlcCode",\
                 "%capacity%"    :"pref_Capacity",\
@@ -1041,7 +1097,7 @@ class EgaisClient:
                 "%quantity%"    :"real_Quantity",\
                 "%price%"       :"wb_Price",\
                 "%inform_a%"    :"pref_RegId",\
-                "%inform_b%"    :"wbr_InformBRegId",\
+                "%inform_b%"    :"wbr_InformF2RegId",\
                 "%shortname%"   :"pref_ShortName",\
                 "%alccode%"     :"pref_AlcCode",\
                 "%capacity%"    :"pref_Capacity",\
