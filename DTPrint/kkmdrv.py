@@ -9,7 +9,7 @@ Redeyser FR-K Python interface
 =================================================================
 Переработанный драйвер под общий вид с fprint
 """
-VERSION = '2.0.026'
+VERSION = '2.0.025'
 PORT = '/dev/ttyS0' #'COM1'
 #Commands
 DEBUG = 0
@@ -493,7 +493,6 @@ class KKM:
             return errcode
 
         def _discount(self,lastposition=0,issum=1,isgrow=0,value="0"):
-            #print "discount: ",value
             if isgrow==0:
                 return self.Skidka(value)
             else:
@@ -501,7 +500,6 @@ class KKM:
 
         def _register(self,price="0",count="1",departament="1",text=u"",taxes=[0,0,0,0][:]):
             """ Изменено doom для совместимости с fprint"""
-            #print "register",price,count
             self.__clearAnswer()
             bprice=sval2data(price,5)
             bcount=sval2data(count,5)
@@ -539,20 +537,10 @@ class KKM:
             btaxes = "%s%s%s%s" % tuple(map(lambda x: chr(x), taxes))
             btext  = text.encode('cp1251').ljust(40,chr(0x0))
             self.__sendCommand(0x85,self.password+bsumma+bsumma2+bsumma3+bsumma4+bsale+btaxes+btext)
-            time.sleep(0.7) 
+            time.sleep(0.2) 
             a = self.__readAnswer()
             time.sleep(0.5) 
             cmd,errcode,data = (a['cmd'],a['errcode'],a['data'])
-            self.OP_CODE    = ord(data[0])
-            return errcode
-
-        def _preitog(self):
-            print "PREITOG!"
-            self.__clearAnswer()
-            self.__sendCommand(0x89,self.password)
-            a = self.__readAnswer()
-            cmd,errcode,data = (a['cmd'],a['errcode'],a['data'])
-            print "PREITOG ANSWER:",errcode
             self.OP_CODE    = ord(data[0])
             return errcode
 

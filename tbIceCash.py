@@ -257,7 +257,7 @@ class tb_trsc_hd(my.table):
         #print q
         return q
 
-    def _calc_sum(self,idbegin=None,idend=None):
+    def _calc_sum(self,idplace,nkassa,idbegin=None,idend=None):
         s1=''
         s2=''
         if (idbegin!=None):
@@ -274,19 +274,22 @@ class tb_trsc_hd(my.table):
         sum(discount_sum),\
         sum(bonus),\
         sum(bonus_discount),\
-        min(id),max(id)\
-        from %s where ispayed=1 %s" % (self.tablename,s)
+        min(id),max(id),\
+        sum(if(type=0,if(isfiscal=0,1,0),0)),\
+        sum(if(type=0,1,0)),\
+        sum(if(isfiscal=0,summa,0)),\
+        sum(if(isfiscal=0,discount_sum,0)),\
+        sum(if(isfiscal=0,bonus_discount,0))\
+        from %s where ispayed=1 %s and idplace=%s and nkassa=%s" % (self.tablename,s,idplace,nkassa)
 
-    def _calc_count(self,idbegin=None,idend=None):
+    def _calc_count(self,idplace,nkassa,idbegin=None,idend=None):
         s1=''
         s2=''
         if (idbegin!=None):
             s1+=" and `id`>='%d'" % idbegin
         if (idend!=None):
             s2+=" and `id`<='%d'" % idend
-        s=s1+s2
-        if s!='':
-            s=' where id>=0 '+s
+        s=' where idplace=%s and nkassa=%s and id>=0 %s %s' % (idplace, nkassa, s1, s2)
         return "select \
         sum(if(type=1,if(ispayed=1,1,0),0)),\
         sum(if(ispayed=0,1,0)),\
@@ -302,8 +305,8 @@ class tb_trsc_hd(my.table):
             s2+=" and `idhd`<='%d'" % idend
         s=s1+s2
         return "select ct.p_section,ct.p_idgroup,ct.code,ct.p_alco,ct.paramf1,sum(ct.paramf2),sum(ct.paramf3),\
-        sum(ct.discount),sum(ct.bonus),sum(ct.bonus_discount)\
-        from tb_trsc_hd as hd,tb_trsc_ct as ct where hd.id=ct.idhd and hd.ispayed=1 and ct.storno=0 %s group by code" % (s)
+        sum(ct.discount),sum(ct.bonus),sum(ct.bonus_discount),isfiscal\
+        from tb_trsc_hd as hd,tb_trsc_ct as ct where hd.id=ct.idhd and hd.ispayed=1 and ct.storno=0 %s group by code,isfiscal" % (s)
 
     def _last(self,idplace,nkassa,_if=""):
         if _if!="":
@@ -936,6 +939,13 @@ class tb_Zet(my.table):
         self.addfield('number','d')
         self.addfield('vir','f')
         self.addfield('up','d')
+        self.addfield('c_nofiscal','d')
+        self.addfield('c_saled','d')
+        self.addfield('nf_summa','f')
+        self.addfield('nf_discount','f')
+        self.addfield('nf_bonus_discount','f')
+        self.addfield('nf_vir','f')
+
 
         self.record_add = self.fieldsorder[1:] 
 
@@ -971,6 +981,12 @@ class tb_Zet(my.table):
           `number`     int(4) default 0,
           `vir`        double(8,2) default 0,
           `up`      tinyint(1) default 0,
+          `c_nofiscal`    int(4) default 0,
+          `c_saled`       int(4) default 0,
+          `nf_summa` double(8,2) DEFAULT '0.00',
+          `nf_discount` double(8,2) DEFAULT '0.00',
+          `nf_bonus_discount` double(8,2) DEFAULT '0.00',
+          `nf_vir` double(8,2) DEFAULT '0.00',
 
           PRIMARY KEY (`id`),
           KEY `pl` (`idplace`,`nkassa`,`id`),
@@ -1027,6 +1043,7 @@ class tb_Zet_cont(my.table):
         self.addfield('discount','f')
         self.addfield('bonus','f')
         self.addfield('bonus_discount','f')
+        self.addfield('isfiscal','d')
 
         self.record_add = self.fieldsorder[1:] 
 
@@ -1048,6 +1065,7 @@ class tb_Zet_cont(my.table):
           `discount`   double(8,2) default 0,
           `bonus`      double(8,2) default 0,
           `bonus_discount`  double(8,2) default 0,
+          `isfiscal`      tinyint(1) default 0,
 
           PRIMARY KEY (`idhd`,`id`),
           KEY `dt` (`idhd`,`code`)
@@ -1399,6 +1417,41 @@ class tb_egais_ostat(my.table):
 
     def _find(self,alccode):
         return self.query_all_select()+" where pref_AlcCode=%s" % (alccodea)
+
+class tb_egais_docs_need(my.table):
+    def __init__ (self,dbname):
+        my.table.__init__(self,dbname)
+        self.addfield('id','d')
+        self.addfield('ttn_WbRegID','s')
+        self.addfield('ttn_ttnNumber','s')
+        self.addfield('ttn_ttnDate','D')
+        self.addfield('ttn_Shipper','s')
+        self.record_add = self.fieldsorder[1:] 
+
+    def _create(self):
+        q="""
+        CREATE TABLE `%s` (
+          `id` int(12) NOT NULL AUTO_INCREMENT,
+          `ttn_WbRegID` char(40) DEFAULT NULL,
+          `ttn_ttnNumber` char(40) DEFAULT NULL,
+          `ttn_ttnDate` date default NULL,
+          `ttn_Shipper` char(40) DEFAULT NULL,
+          PRIMARY KEY (`id`),
+          KEY `idd` (`ttn_WbRegID`)
+        ) ENGINE=MyISAM DEFAULT CHARSET=utf8
+        """ % self.tablename
+        return q
+
+    def _add(self,struct):
+        return self.query_insert(struct)
+
+    def _gets(self):
+        self.query_all_select()
+        q="select *,"+\
+        "(select status from tb_egais_docs_hd as hd where ttn_WbRegID=hd.tc_RegId)as d_status"+\
+        " from tb_egais_docs_need order by ttn_ttnDate desc"
+        self.query_fields.append('d_status')
+        return q
 
 class tb_actions_hd(my.table):
     def __init__ (self,dbname):

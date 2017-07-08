@@ -6,7 +6,7 @@
     License GPL
     writed by Romanenko Ruslan
     redeyser@gmail.com
-    2017-03-12
+    2017-01-18
 """
 
 import xml.etree.ElementTree as etree
@@ -27,7 +27,7 @@ import json
 
 import dbDTPrint
 
-VERSION="1.0.028"
+VERSION="1.0.025"
 MAX_PRINTERS = 16
 CMD_SHTRIHM = [\
         "_beep",\
@@ -580,8 +580,8 @@ class Handler(BaseHTTPRequestHandler):
         except:
             xml_params=None
         params={}
-        #print "FPRINT:%s" % cm_command
-        #print "PARAMS:%s" % cm_param
+        print "FPRINT:%s" % cm_command
+        print "PARAMS:%s" % cm_param
         if xml_params!=None and xml_params.tag=='list':
             plist=xml_params
             params={}
@@ -706,9 +706,6 @@ class Handler(BaseHTTPRequestHandler):
         if cm_command == "_opensmena":
             self.ep._opensmena()
 
-        if cm_command == "_preitog":
-            pass
-
         if cm_command == "_renull":
             self.ep._renull()
 
@@ -763,7 +760,6 @@ class Handler(BaseHTTPRequestHandler):
             params['title'],\
             params['oper'],\
             params['section'],\
-            params['realcena'],\
             params['p1'],params['p2'],params['p3'],\
             params['ch'],params['bonus'],params['discount'],params['line'],bool(int(params['ofd'])))
 
@@ -805,7 +801,6 @@ class Handler(BaseHTTPRequestHandler):
             xml_params=None
         params={}
         #print "SHTRIHM:%s" % cm_command,cm_param
-        #print "SHTRIHM:%s" % cm_command
         if xml_params!=None and xml_params.tag=='list':
             plist=xml_params
             params={}
@@ -867,11 +862,10 @@ class Handler(BaseHTTPRequestHandler):
                     return_data=arr2xml('tables',self.TablesStruct)
 
         if cm_command == "prn_get_tabvalues":
-            #print "TableValues", params['table'] 
+            print "TableValues" 
             self.TablesValues=[]
             table=int(params['table'])
             self.ep.tableStruct(table)
-            #print self.ep.TableStruct
             for i in range(self.ep.TableStruct[0]):
                 fields=[]
                 for j in range(self.ep.TableStruct[1]):
@@ -883,7 +877,6 @@ class Handler(BaseHTTPRequestHandler):
                 self.TablesValues.append(fields)
             return_type="array"
             return_id=0
-            #print 'VALUES', self.TablesValues
             if not self.ep._iserror():
                 if xmlformat:
                     textlines=[]
@@ -942,9 +935,6 @@ class Handler(BaseHTTPRequestHandler):
 
         if cm_command == "_opensmena":
             self.ep._opensmena()
-
-        if cm_command == "_preitog":
-            self.ep._preitog()
 
         if cm_command == "_renull":
             self.ep._renull()
@@ -1006,7 +996,6 @@ class Handler(BaseHTTPRequestHandler):
             params['title'],\
             params['oper'],\
             params['section'],\
-            params['realcena'],\
             params['p1'],params['p2'],params['p3'],\
             params['ch'],params['bonus'],params['discount'],params['line'],bool(int(params['ofd'])))
 
@@ -1033,11 +1022,9 @@ class Handler(BaseHTTPRequestHandler):
 
         if return_id==-1:
             return_id=self.ep.error
-            print "SHTRIHM:%s" % cm_command
-            print "resultcode=%s" % hex(return_id)
+            #print "resultcode=%s" % hex(return_id)
 
         if xmlformat:
-            #print return_data
             return self.result_xml(return_id,return_data,return_type)
         else:
             return return_id

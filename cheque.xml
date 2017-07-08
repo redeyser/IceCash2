@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Cheque
 inn="4207008740"
-datetime="1907161520"
-kpp="420501001"
+datetime="0404172114"
+kpp="420545008"
 kassa="1"
-address="г. Кемерово, пр.Октябрьский 68"
+address="г. Кемерово пр.Ленина 82"
 name="ООО фирма Илва"
-number="327"
+number="3321"
 shift="1"
 >
 
-	<Bottle barcode="22N000003WDONDRWDQ60B0160413001005647J2PPB18T6X3JNGW7J7AI7VK3LQUR966"
-	ean="4601463003032" price="154.00" volume="0.2500"/>
+	<Bottle barcode="22N0000165GUQ7JVFTP3AWY70117001010564L7EJE6FMG1SS59918N08QGQNIG46M2H"
+	ean="4620006995702" price="81.00" volume="0.1000"/>
 
 </Cheque>

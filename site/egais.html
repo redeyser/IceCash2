@@ -7,11 +7,15 @@
         <tr class="ice sel" onclick='_send_places();'><td>Запросить список ТТ</td></tr>
         <tr class="ice sel" onclick='_send_ostat();'><td>Запросить остатки</td></tr>
         <tr class="ice sel" onclick='_send_reply();'><td>Запросить документ</td></tr>
+        <tr class="ice sel" onclick='_send_nattn();'><td>Запросить список ТТН</td></tr>
         <tr class="ice sel" onclick='_send_docs();'><td>Отправить документы</td></tr>
         <tr class="ice sel" onclick='_get_docs();'><td>Получить документы</td></tr>
         <tr class="ice sel" onclick='_get_ostat();'><td>Просмотр остатков</td></tr>
+        <tr class="ice sel" onclick='_get_nattn();'><td>Просмотр неотвеченных</td></tr>
         <tr class="ice sel" onclick='_get_list();'><td>Просмотр</td></tr>
         <tr class="ice sel" onclick='_create_doc(0);'><td>Создать документ</td></tr>
+        <tr class="ice sel" onclick='_send_version(1);'><td>Version_1</td></tr>
+        <tr class="ice sel" onclick='_send_version(2);'><td>Version_2</td></tr>
         <tr class="ice bold sel" onclick='_relocate("/");'><td>В начало</td></tr>
     </table>
 
@@ -294,6 +298,19 @@
     r=_getdata("/egais/send/reply?ttn="+ttn);
         foo.innerHTML=r;
   }
+  function _send_reply_auto(ttn){
+    r=_getdata("/egais/send/reply?ttn="+ttn);
+    foo.innerHTML=r;
+    alert('Запрос отправлен');
+  }
+  function _send_nattn(){
+    r=_getdata("/egais/send/nattn");
+        foo.innerHTML=r;
+  }
+  function _send_version(ver){
+    r=_getdata("/egais/send/version?version="+ver);
+        foo.innerHTML=r;
+  }
   function _send_ostat(){
     r=_getdata("/egais/send/ostat");
         foo.innerHTML=r;
@@ -338,5 +355,50 @@
         s+="Принято квитанций:"+json['result']['Ticket']+"\n";
     }
     alert(s);
+  }
+  function _get_nattn(){
+    stat=['','Новый','Готовый','Отправленный','Подписанный','Принятый','Отвергнутый'];
+    r=_getdata("/egais/get/nattn");
+    if (r=="0"){
+        res.innerHTML="Ошибка запроса";
+        return;
+    }
+    data=JSON.parse(r);
+    data=data['data'];
+    _cont="";
+    //alert(r);
+    for (var i in data){
+        d=data[i];
+        idd=d['id'];
+        ttn=d['ttn_WbRegID'];
+        wbnumber=d['ttn_ttnNumber'];
+        wbdate=d['ttn_ttnDate'];
+        sender=d['ttn_Shipper'];
+        //alert(d['d_status']);
+        result=stat[parseInt(d['d_status'])];
+        cl="black";
+        if (parseInt(d['d_status'])==2){
+            cl='ice';
+        }
+        if (parseInt(d['d_status'])==5){
+            cl='green';
+        }
+        if (parseInt(d['d_status'])==6){
+            cl='warn';
+        }
+            on="onclick=\"_send_reply_auto(\'"+ttn+"\');\"";
+        _cont+="<tr class='smallest "+cl+"' "+on+"'><td class='flame'>"+idd+"</td>"+
+        "<td >"+ttn+"</td>"+
+        "<td >"+wbnumber+"</td>"+
+        "<td >"+sender+"</td>"+
+        "<td >"+wbdate+"</td>"+
+        "<td >"+result+"</td>"+
+        "</tr>";
+    }
+    _hd="<tr>"+
+    "<th>#</th><th>ТТН</th><th>Номер</th><th>Поставщик</th><th>Дата</th><th>Статус</th>"+
+    "</tr>";
+    res.innerHTML="<table class='tb'>"+_hd+_cont+"</table>";
+    res.hidden=false;
   }
 </script>

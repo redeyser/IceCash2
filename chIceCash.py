@@ -185,7 +185,7 @@ class chIceCash:
         if r==int(shk[-1]):
             return True
         else:
-            #print r,int(shk[-1])
+            print r,int(shk[-1])
             return False
 
 
@@ -410,6 +410,7 @@ class chIceCash:
                 if _err:
                     message=u"Призовой сервер недоступен."
                 else:
+                    #print self.ps.info
                     self.dtpclient._cm(printer,"prn_lines",{'text':self.ps.info,"width":0,"height":0,"font":3,"bright":1,"big":0,"align":"left","invert":0})
                     if int(self.ps.gen['idprize'])==0:
                         message=u"Ваш чек не выиграл"
@@ -444,27 +445,21 @@ class chIceCash:
             self.dtpclient._cm(printer,"prn_lines",{'text':message,"width":0,"height":1,"font":1,"bright":0,"big":0,"align":"centers","invert":0})
             self.dtpclient._cm(printer,"prn_lines",{'text':submessage+u" \n","width":0,"height":0,"font":1,"bright":10,"big":0,"align":"centers","invert":0})
 
+
         """ ПЕЧАТЬ ПОЗИЦИЙ ЧЕКА """
         for p in range(len(self.pos)):
             pos=self.pos[p]
             if pos['storno']==1:
                 continue
 
+            #self.dtpclient._cm(printer,"prn_lines_def",{'text':pos['name']})
             if not ofd or self.db.sets['d_devtype']=='KKM_SHTRIHM':
                 self.dtpclient._cm(printer,"prn_lines",{'text':pos['name'],"width":0,"height":0,"font":1,"bright":10,"big":0,"align":"left","invert":0})
-            
-            """ Изменение цены. скидку вкручиваем в цену. Так требует ОФД """
-            if pos['discount']>0 or pos['bonus_discount']>0:
-                _cena=_round((pos['paramf1']*pos['paramf2']-pos['discount']-pos['bonus_discount'])/pos['paramf2'],2)
-            else:
-                _cena=_round(pos['paramf1'],2)
-            
             if not self.dtpclient._cm(printer,"prn_sale_short",\
                     {   'fiscal'    : fiscal,\
                         'oper'      : _ctype,\
                         'title'     : pos['name'],\
                         'section'   : pos['p_section'],\
-                        'realcena'  : _cena,\
                         'p1'        : _round(pos['paramf1'],2),\
                         'p2'        : _round(pos['paramf2'],3),\
                         'p3'        : _round(pos['paramf3'],2),\
@@ -475,17 +470,7 @@ class chIceCash:
                         'ofd'       : d_ofd }):
                 return False
 
-        #self.dtpclient._cm(printer,"_discount",{'islast':0,'issum':1,'isgrow':0,'summa':_round(1,2)})
-        
-        #""" ПОДЫТОГ """
-        #if not self.dtpclient._cm(printer,"_preitog",{}):
-        #    return False
-        
 
-        #""" ПРОВЕДЕНИЕ СУММОВОЙ СКИДКИ НА ВЕСЬ ЧЕК """
-        #if (not escpos)and(fiscal==1)and(_discount+_bonus_discount)>0:
-        #    if not self.dtpclient._cm(printer,"_discount",{'islast':0,'issum':1,'isgrow':0,'summa':_round(_discount+_bonus_discount,2)}):
-        #        return False
 
         """ ДИСКОНТНАЯ КАРТА """
         if self.db.ch_head["discount_card"]!="":
@@ -563,6 +548,12 @@ class chIceCash:
                 self.dtpclient._cm(printer,"prn_sale_style",{'text':u"*** Списано бонусов",'value':  _round(self.db.ch_head["bonus_discount"],2),'ch':"."})
                 self.dtpclient._cm(printer,"prn_line",{'ch':"="})
                 
+            
+
+        """ ПРОВЕДЕНИЕ СУММОВОЙ СКИДКИ НА ВЕСЬ ЧЕК """
+        if (not escpos)and(fiscal==1)and(_discount+_bonus_discount)>0:
+            if not self.dtpclient._cm(printer,"_discount",{'islast':0,'issum':1,'isgrow':0,'summa':_round(_discount+_bonus_discount,2)}):
+                return False
 
         """ ПРИВЕДЕНИЕ КОМПЛЕКСНОЙ ОПЛАТЫ К ОДНОМУ ТИПУ"""
         if self.db.sets['d_devtype']=='KKM_FPRINT':
@@ -709,12 +700,12 @@ class chIceCash:
 
     def _docalc(self):
         def calc_discount(cena,count,proc,_minprice):
-            summa = float(_round(cena*count,2))
-            _cena = float(_round(cena*(1-proc),2))
-            _cena = _minprice if _cena<_minprice else _cena
-            _summa = float(_round(_cena*count,2))
-            discount = summa - _summa
-            return (_cena, discount)
+            _proc=proc
+            if float(_round(cena-cena*_proc,2))>=_minprice:
+                result=float(_round(cena*count*_proc,2))
+            else:
+                result=float(_round(cena*count,2))-float(_round(_minprice*count,2))
+            return result
 
         def getvars(pos):
             if pos['p_max_skid']!=0:
@@ -811,21 +802,23 @@ class chIceCash:
                     _dp=_discount_pos
                 else:
                     _dp=dp
+                #print dp,_dp,_cena,_dcount,_minprice
 
-                """ Высчитываем процентную скидку и новую цену """
                 if _discount_card and _mark.find(MARK_DENY_DISCOUNT)==-1:
-                    (_cena,dsum) = calc_discount(_cena,_dcount,_dp,_minprice)
-                """ Высчитываем максимально возможное списание бонусами, исходя из скидочной цены """
+                    dsum=calc_discount(_cena,_dcount,_dp,_minprice)
+                    """ Расчет цены после скидки """
+                    _cena=float(_round((_summa-dsum)/_count,2))
+
                 if _bonus_card and bt==1 and _mark.find(MARK_DENY_DISCOUNT)==-1:
-                    (_cena,bsum) = calc_discount(_cena,_count,bm,_minprice)
-                
-                #print "calc_discount:",_cena,_count,_summa,dsum
+                    bsum=calc_discount(_cena,_count,bm,_minprice)
+
                 discount+=dsum
                 discount_bonus+=bsum
 
             pos['discount']=dsum
             pos['bonus_discount']=bsum
             self.pos[p]=pos
+            #print pos['bonus_discount']
 
         cur_discount=discount_bonus
 
@@ -852,58 +845,41 @@ class chIceCash:
                 discount_bonus=0
                 for p in range(len(self.pos)):
                     pos=self.pos[p]
-                    bsum=0
+                    dsum=0
                     if pos['storno']!=1:
-                        bsum=float(_round(pos["bonus_discount"]*p_correct,2))
-                        discount_bonus+=bsum
-                    pos['bonus_discount']=bsum
+                        dsum=float(_round(pos["bonus_discount"]*p_correct,2))
+                        discount_bonus+=dsum
+                    pos['bonus_discount']=dsum
                     self.pos[p]=pos
                     
             discount_bonus=cur_discount
 
-        """ Пересчитываем скидку и списание бонусов
-            Таким образом, чтобы позиционные суммы оказались
-            кратными округленным скидочным ценам 
-            А также суммируем все откорректированные скидки
-            Суммы могут изменится, а следовательно изменится и сумма чека
-        """
+        """ Пересчитываем скидку и списание бонусов """
         discount=0
         discount_bonus=0
-        sumcheck=0
         for p in range(len(self.pos)):
             pos=self.pos[p]
             if pos['storno']!=1:
-                _summa=pos["paramf3"]
-                _count=pos["paramf2"]
-                _cenaSrc=pos["paramf1"]
-                dsum=pos["discount"]
-                bsum=pos["bonus_discount"]
-                """ Высчитываем цену после двух скидок
-                    Высчитываем сумму каждой позиции наиболее точно, без округления
-                """
-                _rsum = _cenaSrc*_count - dsum - bsum
-                _cena = float(_round(_rsum/_count, 2))
-                _rcount = float(_round(_rsum/_cena,3))
-                delta = (_count-_rcount)*_cena
-                if dsum!=0:
-                    dsum+=delta
-                else:
-                    bsum+=delta
-                _nsumma = float(_round(_cena*_count,2))
-                sumcheck+=_nsumma+dsum+bsum
-                pos['paramf3']=_nsumma
-                pos["discount"]=dsum
-                pos["bonus_discount"]=bsum
-                discount+=dsum
-                discount_bonus+=bsum
+                discount+=pos["discount"]
+                discount_bonus+=pos["bonus_discount"]
+                #pos["discount"]=pos["discount"]+pos["bonus_discount"]
                 pos["bonus"]=0
+                if pos["bonus_discount"]!=0:
+                    last_bonus=p
+                else:
+                    last_bonus=0
                 self.pos[p]=pos
 
-        """ В результате округлений, сумма списания бонусов
-            может оказаться немного больше суммы накоплений
-            Бонусный сервер должен допускать списание в минул
-            на копеечные суммы
-        """
+        if cur_discount!=discount_bonus:
+            self.pos[last_bonus]['bonus_discount']+=cur_discount-discount_bonus
+            discount_bonus=cur_discount
+            
+            
+        if discount_bonus>bs:
+            self.pos[last_bonus]['bonus_discount']-=discount_bonus-bs
+            discount_bonus=bs
+
+        #discount=discount+discount_bonus
 
         """ Последний этап, это начисление бонусов 
             Бонусы начисляются только если не было скидки по дисконтной карте
@@ -930,7 +906,7 @@ class chIceCash:
                             _dcount=_count
                         
                         if _mark.find(MARK_DENY_BONUS)==-1: 
-                            (_cena,bsum) = calc_discount(_cena,_dcount,_bp,_minprice)
+                            bsum = calc_discount(_cena,_dcount,_bp,_minprice)
                         else:
                             bsum=0
 

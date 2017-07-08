@@ -1,20 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ns:Documents Version="1.0"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xmlns:ns="http://fsrar.ru/WEGAIS/WB_DOC_SINGLE_01"
+xmlns:ns= "http://fsrar.ru/WEGAIS/WB_DOC_SINGLE_01"
 xmlns:oref="http://fsrar.ru/WEGAIS/ClientRef"
-xmlns:qp="http://fsrar.ru/WEGAIS/QueryParameters">
+xmlns:pref="http://fsrar.ru/WEGAIS/ProductRef"
+xmlns:wa= "http://fsrar.ru/WEGAIS/ActTTNSingle">
 <ns:Owner>
-    <ns:FSRAR_ID>020000606821</ns:FSRAR_ID>
+    <ns:FSRAR_ID>020000606825</ns:FSRAR_ID>
 </ns:Owner>
 <ns:Document>
-    <ns:QueryClients>
-        <qp:Parameters>
-            <qp:Parameter>
-            <qp:Name>ИНН</qp:Name>
-            <qp:Value>4205183793</qp:Value>
-        </qp:Parameter>
-        </qp:Parameters>
-    </ns:QueryClients>
+  <ns:WayBillAct>
+    <wa:Header>
+        <wa:IsAccept>Rejected</wa:IsAccept>
+        <wa:ACTNUMBER>56_41</wa:ACTNUMBER>
+        <wa:ActDate>2017-04-04</wa:ActDate>
+        <wa:WBRegId>TTN-0104836996</wa:WBRegId>
+        <wa:Note></wa:Note>
+    </wa:Header>
+    <wa:Content>
+        
+    </wa:Content>
+  </ns:WayBillAct>
 </ns:Document>
 </ns:Documents>
