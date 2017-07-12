@@ -4,9 +4,9 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xmlns:ns="http://fsrar.ru/WEGAIS/WB_DOC_SINGLE_01"
 xmlns:qp="http://fsrar.ru/WEGAIS/QueryParameters">
 <ns:Owner>
-<ns:FSRAR_ID>030000256013</ns:FSRAR_ID>
+<ns:FSRAR_ID>020000606823</ns:FSRAR_ID>
 </ns:Owner>
 <ns:Document>
-<ns:QueryRests></ns:QueryRests>
+<ns:QueryRests_v2></ns:QueryRests_v2>
 </ns:Document>
 </ns:Documents>
