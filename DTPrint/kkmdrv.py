@@ -36,18 +36,13 @@ import serial
 import string,time
 from struct import pack, unpack
 
-
+"""Преобразует буфер 16-х значений в строку"""
 def bufStr(*b):
-    """Преобразует буфер 16-х значений в строку"""
-    result = []
-    for x in b: result.append(chr(x))
-    return string.join(result,'')
+    return string.join(map(lambda x: chr(x),b),'')
 
+"""Преобразует строку в шестнадцатеричный дамп"""
 def hexStr(s):
-    """Преобразуем в 16-е значения"""
-    result = []
-    for c in s: result.append(hex(ord(c)))
-    return string.join(result,' ')
+    return string.join(map(lambda c: hex(ord(c)),s),' ')
 
 def data2int(d,n,m):
     result=0
