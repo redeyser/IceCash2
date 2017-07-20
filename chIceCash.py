@@ -30,6 +30,9 @@ MARK_MAXSKID        = "%"
 MARK_ALCO           = "A"
 
 def _round(V,n):
+    fmt = "%."+str(n)+"f"
+    return fmt % round(V,n)
+    
     z=str(V.__format__(".4f")).split(".")
     if len(z)<2:
         return str(V)
