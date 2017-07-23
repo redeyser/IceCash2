@@ -3,14 +3,18 @@ import sys;
 import re;
 import subprocess
 PIPE = subprocess.PIPE
-def lsdir(dir):
+
+def lsdir_old(dir):
     cmd='ls %s' % dir
     p = subprocess.Popen(cmd, shell=True, stdout=PIPE)
     files=p.stdout.read().split("\n")
     del files[len(files)-1]
     return files
 
-def lsserial(f=""):
+def lsdir(dir):
+    return os.listdir(dir)
+
+def lsserial_old(f=""):
     cmd='ls /dev/ttyS*'
     if f!="":
         f=" | grep %s" % f
@@ -25,6 +29,13 @@ def lsserial(f=""):
         return lsserial1+lsserial2
     else:
         return lsserial2
+
+'''Returns list of persistent serial ports with detachable serial ports (USB) filter applied'''
+def lsserial(filter=""):
+    persistent = [f for f in map(lambda filename: os.path.join('/dev', filename), os.listdir('/dev')) if (not os.path.isdir(f) and ('ttyS' in f))]
+    detachable = [f for f in map(lambda filename: os.path.join('/dev/serial/by-id', filename), os.listdir('/dev/serial/by-id')) if (not os.path.isdir(f) and ('ttyS' in f) and (filter in f))] if os.path.isfile('/dev/serial/by-id') else []
+    return (persistent + detachable) if (filter == "") else detachable
+           
 
 def lsusb():
     cmd='lsusb'
