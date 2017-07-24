@@ -30,12 +30,13 @@ def lsserial_old(f=""):
     else:
         return lsserial2
 
-'''Returns list of persistent serial ports with detachable serial ports (USB) filter applied'''
+
 def lsserial(filter=""):
+    """Return list of persistent serial ports with detachable serial ports (USB) filter applied."""
     persistent = [f for f in map(lambda filename: os.path.join('/dev', filename), os.listdir('/dev')) if (not os.path.isdir(f) and ('ttyS' in f))]
-    detachable = [f for f in map(lambda filename: os.path.join('/dev/serial/by-id', filename), os.listdir('/dev/serial/by-id')) if (not os.path.isdir(f) and ('ttyS' in f) and (filter in f))] if os.path.isfile('/dev/serial/by-id') else []
+    detachable = [f for f in map(lambda filename: os.path.join('/dev/serial/by-id', filename), os.listdir('/dev/serial/by-id'))] if os.path.isdir('/dev/serial/by-id') else []
     return (persistent + detachable) if (filter == "") else detachable
-           
+
 
 def lsusb():
     cmd='lsusb'
