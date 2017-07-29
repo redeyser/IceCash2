@@ -36,18 +36,13 @@ import serial
 import string,time
 from struct import pack, unpack
 
-
+"""Преобразует буфер 16-х значений в строку"""
 def bufStr(*b):
-    """Преобразует буфер 16-х значений в строку"""
-    result = []
-    for x in b: result.append(chr(x))
-    return string.join(result,'')
+    return string.join(map(lambda x: chr(x),b),'')
 
+"""Преобразует строку в шестнадцатеричный дамп"""
 def hexStr(s):
-    """Преобразуем в 16-е значения"""
-    result = []
-    for c in s: result.append(hex(ord(c)))
-    return string.join(result,' ')
+    return string.join(map(lambda c: hex(ord(c)),s),' ')
 
 def data2int(d,n,m):
     result=0
@@ -157,25 +152,21 @@ TIMEOUT_AFTER_CLOSECHECK = 2
 DEFAULT_ADM_PASSWORD = bufStr(0x1e,0x0,0x0,0x0) #Пароль админа по умолчанию = 30
 DEFAULT_PASSWORD     = bufStr(0x1,0x0,0x0,0x0)  #Пароль кассира по умолчанию = 1
 
+"""Подсчет CRC"""
 def LRC(buff):
-    """Подсчет CRC"""
-    result = 0
-    for c in buff:
-        result = result ^ ord(c)
-    #dbg( "LRC",result)
-    return chr(result)
+    return chr(reduce(lambda crc, char: crc ^ ord(char), buff, 0))
 
+#    return map(lambda bit: bit == '1',bin(b)[2:])[::-1]
+"""Convert byte into boolean array"""
 def byte2array(b):
-        """Convert byte into array"""
-        result = []
-        for i in range(0,8):
-                if b == b >> 1 <<1:
-                        result.append(False)
-                else:
-                        result.append(True)
-                b = b >>1
-        return result
-
+    result = []
+￼   for i in range(0,8):
+￼       if b == b >> 1 <<1:
+￼           result.append(False)
+￼       else:
+￼           result.append(True)
+￼       b = b >>1
+￼   return result
 
 #Exceptions
 class kkmException(Exception):
