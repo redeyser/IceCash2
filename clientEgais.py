@@ -5,6 +5,7 @@ import httplib, urllib,time
 import requests
 import xml.etree.ElementTree as etree
 import re
+from icelog import *
 from my import curdate2my
 from datetime import datetime
 import dbIceCash as db
@@ -275,6 +276,12 @@ xmlns:qp="http://fsrar.ru/WEGAIS/QueryParameters">
 </ns:Documents>
 """
 
+def findUL(node):
+    result = node.find("oref:UL",ns)
+    if result == None:
+        result = node.find("oref:FO",ns)
+    return result
+    
 class EgaisClient:
 
     def __init__(self,server_ip,server_port,db):
@@ -548,7 +555,8 @@ class EgaisClient:
             id=d['idd']
             url=d['url']
             if not self._get(url):
-                continue    
+                continue   
+            addLog('/var/log/egaisLog.xml',self.data)
             tree=etree.fromstring(self.data)
             doc = tree.find("ns:Document",ns)
             if doc==None:
@@ -653,7 +661,7 @@ class EgaisClient:
         self.db.egais_places_clear()
         for t in clients.findall("rc:Client",ns):
             t=t.find("oref:OrgInfoV2",ns)
-            t=t.find("oref:UL",ns)
+            t = findUL(t)
             a=t.find("oref:address",ns)
             for f in self.db.tb_egais_places.record_add:
                 r=t.find("oref:"+f,ns)
@@ -684,10 +692,10 @@ class EgaisClient:
         header=doc.find("wb:Header",ns)
 
         node=header.find("wb:Shipper",ns)
-        shipper=node.find("oref:UL",ns)
+        shipper=findUL(node)
 
         node=header.find("wb:Consignee",ns)
-        consignee=node.find("oref:UL",ns)
+        consignee=findUL(node)
 
         self._setstruct(owner,"ns:FSRAR_ID")
         self._setstruct(doc,"wb:Identity")
@@ -717,9 +725,9 @@ class EgaisClient:
         doc=doc[0]
         header=doc.find("wbr:Header",ns)
         shipper=header.find("wbr:Shipper",ns)
-        shipper=shipper.find("oref:UL",ns)
+        shipper=findUL(shipper)
         consignee=header.find("wbr:Consignee",ns)
-        consignee=consignee.find("oref:UL",ns)
+        consignee=findUL(consignee)
 
         self._setstruct(shipper,"oref:ClientRegId","send_RegId")
         self._setstruct(consignee,"oref:ClientRegId","recv_RegId")
@@ -769,7 +777,8 @@ class EgaisClient:
         product=pos.find("wb:Product",ns)
 
         node=product.find("pref:Producer",ns)
-        producer=node.find("oref:UL",ns)
+
+        producer=findUL(node)
 
         self._setstruct(pos,"wb:Identity")
         self._setstruct(pos,"wb:Quantity")
@@ -829,9 +838,7 @@ class EgaisClient:
             n=t.find("rst:Product",ns)
             p=n.find("pref:Producer",ns)
             # UL FO ...
-            ul=p.find("oref:UL",ns)
-            if ul == None:
-                ul=p.find("oref:FO",ns)
+            ul=findUL(p)
             a=ul.find("oref:address",ns)
             struct={}
             for f in self.db.tb_egais_ostat.record_add:
