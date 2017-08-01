@@ -5,6 +5,7 @@ import httplib, urllib,time
 import requests
 import xml.etree.ElementTree as etree
 import re
+from icelog import *
 from my import curdate2my
 from datetime import datetime
 import dbIceCash as db
@@ -85,37 +86,44 @@ xmlns:wb="http://fsrar.ru/WEGAIS/TTNSingle_v2">
 <wb:Date>%dt%</wb:Date>
 <wb:ShippingDate>%dt%</wb:ShippingDate>
 <wb:Type>%type%</wb:Type>
-<wb:UnitType>%packet%</wb:UnitType>
 
 <wb:Shipper>
 <oref:UL>
-<oref:INN>%inn%</oref:INN><oref:KPP>%kpp%</oref:KPP><oref:ClientRegId>%regid%</oref:ClientRegId>
-<oref:ShortName>%name%</oref:ShortName><oref:FullName>%name%</oref:FullName>
-<oref:address>
-    <oref:Country>643</oref:Country><oref:description></oref:description>
-</oref:address>
-</oref:UL>
+    <oref:INN>%inn%</oref:INN><oref:KPP>%kpp%</oref:KPP><oref:ClientRegId>%regid%</oref:ClientRegId>
+        <oref:ShortName>%name%</oref:ShortName><oref:FullName>%name%</oref:FullName>
+        <oref:address>
+            <oref:Country>643</oref:Country><oref:RegionCode>42</oref:RegionCode>
+            <oref:description></oref:description>
+        </oref:address>
+    </oref:UL>
 </wb:Shipper>
 
 <wb:Consignee>
-<oref:UL>
-<oref:INN>%send_inn%</oref:INN><oref:KPP>%send_kpp%</oref:KPP><oref:ClientRegId>%send_regid%</oref:ClientRegId>
-<oref:ShortName>%send_name%</oref:ShortName><oref:FullName>%send_name%</oref:FullName>
-<oref:address>
-    <oref:Country>643</oref:Country><oref:description></oref:description>
-</oref:address>
-</oref:UL>
+    <oref:UL>
+        <oref:INN>%send_inn%</oref:INN><oref:KPP>%send_kpp%</oref:KPP><oref:ClientRegId>%send_regid%</oref:ClientRegId>
+        <oref:ShortName>%send_name%</oref:ShortName><oref:FullName>%send_name%</oref:FullName>
+        <oref:address>
+            <oref:Country>643</oref:Country><oref:RegionCode>42</oref:RegionCode>
+            <oref:description></oref:description>
+        </oref:address>
+    </oref:UL>
 </wb:Consignee>
 
 <wb:Transport>
-<wb:TRAN_CAR></wb:TRAN_CAR>
-<wb:TRAN_CUSTOMER></wb:TRAN_CUSTOMER>
-<wb:TRAN_DRIVER></wb:TRAN_DRIVER>
-<wb:TRAN_LOADPOINT></wb:TRAN_LOADPOINT>
-<wb:TRAN_UNLOADPOINT></wb:TRAN_UNLOADPOINT>
-<wb:TRAN_FORWARDER></wb:TRAN_FORWARDER>
+    <wb:TRAN_TYPE></wb:TRAN_TYPE>
+    <wb:TRAN_COMPANY></wb:TRAN_COMPANY>
+    <wb:TRAN_TRAILER></wb:TRAN_TRAILER>
+    <wb:TRAN_CAR></wb:TRAN_CAR>
+    <wb:TRAN_CUSTOMER></wb:TRAN_CUSTOMER>
+    <wb:TRAN_DRIVER></wb:TRAN_DRIVER>
+    <wb:TRAN_LOADPOINT></wb:TRAN_LOADPOINT>
+    <wb:TRAN_UNLOADPOINT></wb:TRAN_UNLOADPOINT>
+    <wb:TRAN_FORWARDER></wb:TRAN_FORWARDER>
+    <wb:TRAN_REDIRECT></wb:TRAN_REDIRECT>
 </wb:Transport>
 
+<wb:Base>waybill doc</wb:Base>
+<wb:Note>NOTE</wb:Note>
 </wb:Header>
 
 <wb:Content>
@@ -139,6 +147,7 @@ XML_SEND_WAYBILL_CONTENT="""
 <pref:Capacity>%capacity%</pref:Capacity>
 <pref:AlcVolume>%alcvolume%</pref:AlcVolume>
 <pref:ProductVCode>%productvcode%</pref:ProductVCode>
+<pref:UnitType>%packet%</pref:UnitType>
 
 <pref:Producer>
 <oref:UL>
@@ -146,9 +155,9 @@ XML_SEND_WAYBILL_CONTENT="""
 <oref:ClientRegId>%regid%</oref:ClientRegId><oref:ShortName>%oref_shortname%</oref:ShortName>
 <oref:FullName>%oref_shortname%</oref:FullName>
 <oref:address>
-    <oref:Country>643</oref:Country><oref:description></oref:description>
+    <oref:Country>643</oref:Country><oref:RegionCode>42</oref:RegionCode><oref:description></oref:description>
 </oref:address>
-<oref:UL>
+</oref:UL>
 </pref:Producer>
 
 </wb:Product>
@@ -267,6 +276,12 @@ xmlns:qp="http://fsrar.ru/WEGAIS/QueryParameters">
 </ns:Documents>
 """
 
+def findUL(node):
+    result = node.find("oref:UL",ns)
+    if result == None:
+        result = node.find("oref:FO",ns)
+    return result
+    
 class EgaisClient:
 
     def __init__(self,server_ip,server_port,db):
@@ -408,6 +423,7 @@ class EgaisClient:
         if xml=="":
             return False
         r=self._sendxml("return.xml","/opt/in/WayBill_v2",xml)
+        #print r
 
         reply_id=self._get_ticket()
 
@@ -539,7 +555,8 @@ class EgaisClient:
             id=d['idd']
             url=d['url']
             if not self._get(url):
-                continue    
+                continue   
+            addLog('/var/log/egaisLog.xml',self.data)
             tree=etree.fromstring(self.data)
             doc = tree.find("ns:Document",ns)
             if doc==None:
@@ -644,7 +661,7 @@ class EgaisClient:
         self.db.egais_places_clear()
         for t in clients.findall("rc:Client",ns):
             t=t.find("oref:OrgInfoV2",ns)
-            t=t.find("oref:UL",ns)
+            t = findUL(t)
             a=t.find("oref:address",ns)
             for f in self.db.tb_egais_places.record_add:
                 r=t.find("oref:"+f,ns)
@@ -675,10 +692,10 @@ class EgaisClient:
         header=doc.find("wb:Header",ns)
 
         node=header.find("wb:Shipper",ns)
-        shipper=node.find("oref:UL",ns)
+        shipper=findUL(node)
 
         node=header.find("wb:Consignee",ns)
-        consignee=node.find("oref:UL",ns)
+        consignee=findUL(node)
 
         self._setstruct(owner,"ns:FSRAR_ID")
         self._setstruct(doc,"wb:Identity")
@@ -708,9 +725,9 @@ class EgaisClient:
         doc=doc[0]
         header=doc.find("wbr:Header",ns)
         shipper=header.find("wbr:Shipper",ns)
-        shipper=shipper.find("oref:UL",ns)
+        shipper=findUL(shipper)
         consignee=header.find("wbr:Consignee",ns)
-        consignee=consignee.find("oref:UL",ns)
+        consignee=findUL(consignee)
 
         self._setstruct(shipper,"oref:ClientRegId","send_RegId")
         self._setstruct(consignee,"oref:ClientRegId","recv_RegId")
@@ -760,7 +777,8 @@ class EgaisClient:
         product=pos.find("wb:Product",ns)
 
         node=product.find("pref:Producer",ns)
-        producer=node.find("oref:UL",ns)
+
+        producer=findUL(node)
 
         self._setstruct(pos,"wb:Identity")
         self._setstruct(pos,"wb:Quantity")
@@ -819,8 +837,9 @@ class EgaisClient:
         for t in products.findall("rst:StockPosition",ns):
             n=t.find("rst:Product",ns)
             p=n.find("pref:Producer",ns)
-            p=p.find("oref:UL",ns)
-            a=p.find("oref:address",ns)
+            # UL FO ...
+            ul=findUL(p)
+            a=ul.find("oref:address",ns)
             struct={}
             for f in self.db.tb_egais_ostat.record_add:
                 if f in replacing:
@@ -980,11 +999,13 @@ class EgaisClient:
     def _make_return(self,id):
         if not self.db.egais_get_mydoc(id):
             return ""
+        replacing = {
+            'wbr_InformBRegId':'wbr_InformF2RegId',
+        }
         xml=XML_SEND_WAYBILL_HEAD.replace("%fsrar_id%",self.fsrar_id)
         rlist={ "%identity%"    :"wb_Identity",\
                 "%number%"      :"wb_NUMBER",\
                 "%dt%"          :"wb_Date",\
-                "%packet%"      :"wb_UnitType",\
                 "%inn%"         :"send_INN",\
                 "%kpp%"         :"send_KPP",\
                 "%regid%"       :"send_RegId",\
@@ -1005,7 +1026,7 @@ class EgaisClient:
                 "%quantity%"    :"real_Quantity",\
                 "%price%"       :"wb_Price",\
                 "%inform_a%"    :"pref_RegId",\
-                "%inform_b%"    :"wbr_InformF2RegId",\
+                "%inform_b%"    :"wbr_InformBRegId",\
                 "%shortname%"   :"pref_ShortName",\
                 "%alccode%"     :"pref_AlcCode",\
                 "%capacity%"    :"pref_Capacity",\
@@ -1034,6 +1055,7 @@ class EgaisClient:
                     xml2=xml2.replace(t1+"None"+t2,"")
 
             xml2=xml2.replace("%pref_type%",u"АП")
+            xml2=xml2.replace("%packet%",self.db.egais_doc_hd["wb_UnitType"])
             XML_CONTENT+="\n"+xml2
 
         XML=xml.replace("%content%",XML_CONTENT)

@@ -33,9 +33,10 @@ from clientIceRest import *
 from clientIceServ import *
 from clientEgais import *
 from chIceCash import _round
+from icelog import * 
 
 MYSQL_HOST  = 'localhost'
-VERSION     = '2.0.063b'
+VERSION     = '2.0.081a'
 
 RULE_NO         = -1
 RULE_SELLER     = 10
@@ -57,7 +58,6 @@ def gethash(h,key,default):
         return h[key]
     else:
         return default
-
 
 #def ice_create_lock ():
 icelock=threading.Lock()
@@ -1780,7 +1780,9 @@ class Handler(BaseHTTPRequestHandler):
                 res=False
             finally:
                 ice_unlock()
-            
+            if not res:
+                msg=str(self.db.ch_head)+"\n"+"-"*40+"\n"+str(self.check.pos)+"\n"+"-"*40+"\n"+self.check.error
+                addLog("/var/log/dIceCash",msg)
             JSON=json.dumps({"error":self.check.error,"sdacha":self.check.sdacha,"prize":self.check.prize},ensure_ascii=False)
             self._writejson(JSON)
             del self.check
