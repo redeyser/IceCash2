@@ -6,7 +6,7 @@ import time
 import serial
 import socket
 import string,time
-import Image
+from PIL import Image
 import qrcode
 import time
 import sys 
@@ -538,6 +538,7 @@ class KKM_FPRINT:
 
         self._write(STX+edata+ETX+CRC)
         self.debug(">> "+hexStr(STX+edata+ETX+CRC))
+        #print hexStr(STX+edata+ETX+CRC)
         if not self._read_byte(ACK):
             self.error=CMDERR_PT
             return False
@@ -961,6 +962,7 @@ class KKM_FPRINT:
 
     def _register(self,price="0",count="0",section="1"):
         data=NULL+sval2data(price,5)+sval2data(count,5)+sval2data(section,1)
+        #print data
         self._send_command("register",data)
 
     def _return(self,price="0",count="0",nocheck=1):
@@ -969,16 +971,25 @@ class KKM_FPRINT:
         data=flags+sval2data(price,5)+sval2data(count,5)
         self._send_command("return",data)
 
-    def _registerpos(self,title,price="0",count="0",tdiscount="0",znak="0",size="0",nalog="4",section="1",shk=""):
+    def _registerpos(self,title,price="0",count="0",tdiscount="0",znak="0",size="0",nalog="0",section="1",shk=""):
         if shk=="":
             shk=NULL*16
         tdiscount=chr(int(tdiscount))
         znak=chr(int(znak))
         nalog=chr(int(nalog))
         data=NULL+title.encode('cp866').ljust(64,NULL)+sval2data(price,6)+sval2data(count,5)+tdiscount+znak+sval2data(size,6)+nalog+sval2data(section,1)+shk.ljust(16,NULL)+NULL
+        print "title="+hexStr(title.encode('cp866').ljust(64,NULL))
+        print "price="+hexStr(sval2data(price,6))
+        print "count="+hexStr(sval2data(count,5))
+        print "tdiscount="+hexStr(tdiscount)
+        print "znak="+hexStr(znak)
+        print "size="+hexStr(sval2data(size,6))
+        print "nalog="+hexStr(nalog)
+        print "section="+hexStr(sval2data(section,1))
+        print "shk="+hexStr(shk.ljust(16,NULL))
         self._send_command("registerpos",data)
 
-    def _returnpos(self,title,price="0",count="0",tdiscount="0",znak="0",size="0",nalog="4",section="1",shk=""):
+    def _returnpos(self,title,price="0",count="0",tdiscount="0",znak="0",size="0",nalog="0",section="1",shk=""):
         if shk=="":
             shk=NULL*16
         tdiscount=chr(int(tdiscount))

@@ -42,10 +42,10 @@ class frk:
 
     def __init__(self,port,speed):
         self.MAX_WIDTH=MAXWIDTH
-        self.password = kkmdrv.DEFAULT_PASSWORD
-        self.admin_password = kkmdrv.DEFAULT_ADM_PASSWORD
+        self.password = 'PIRI'
+        self.admin_password = 'PIRI'
         self.port = port
-        self.speed = speed
+        self.speed = 57600
 
         self.salelines=[]
         self.a_startus=['ready','check','error']
@@ -154,6 +154,7 @@ class frk:
         except:
             err=const_error
             self._status_error()
+
         return err
 
     def prn_devstatus(self):
@@ -466,9 +467,9 @@ class frk:
                     self._returnpos(title,realcena,p2,section=section)
             else:
                 if _type=='sale':
-                    self._registerpos(title,p1,p2,section)
+                    self._register(p1,p2,section)
                 else:
-                    self._returnpos(title,p1,p2)
+                    self._return(p1,p2)
             if self.error != CMDERR_NO:
                 return False
         if b!="" and  b!="0.00":

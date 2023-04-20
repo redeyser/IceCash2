@@ -82,10 +82,12 @@ def float2100int(f,digits=2):
 
 """ Убрать десятичную точку, добить нулями и перевести в строку данных"""
 def sval2data(s,n,_type="i"):
+    if n == 1:
+        _type='b'
     d=int(s.replace(".","").rjust(n,'0'))
     #print s.replace(".","").rjust(n,'0')
     #print hexStr(pack(_type,d).ljust(5,chr(0x0)))
-    return pack(_type,d).ljust(5,chr(0x0))
+    return pack(_type,d).ljust(n,chr(0x0))
 
 #Status constants
 OK            = 0
@@ -576,7 +578,7 @@ class KKM:
             self.__clearAnswer()
             bprice=sval2data(price,5)
             bcount=sval2data(count,5)
-            bdep=sval2data(departament,1)
+            bdep=sval2data(departament,1,'b')
             btaxes = "%s%s%s%s" % tuple(map(lambda x: chr(x), taxes))
             btext  = text.encode('cp1251').ljust(self.MAX_WIDTH,chr(0x0))[:self.MAX_WIDTH]
             self.__sendCommand(0x80,self.password+bcount+bprice+bdep+btaxes+btext)
@@ -591,7 +593,7 @@ class KKM:
             self.__clearAnswer()
             bprice=sval2data(price,5)
             bcount=sval2data(count,5)
-            bdep=sval2data(departament,1)
+            bdep=sval2data(departament,1,'b')
             btaxes = "%s%s%s%s" % tuple(map(lambda x: chr(x), taxes))
             btext  = text.encode('cp1251').ljust(self.MAX_WIDTH,chr(0x0))[:self.MAX_WIDTH]
             self.__sendCommand(0x82,self.password+bcount+bprice+bdep+btaxes+btext)
@@ -643,11 +645,12 @@ class KKM:
                 """Отчет с гашением"""
                 self.__clearAnswer()
                 self.__sendCommand(0x41,admpass)
-                time.sleep(4)
+                time.sleep(3)
                 a = self.__readAnswer()
                 cmd,errcode,data = (a['cmd'],a['errcode'],a['data'])
                 self.OP_CODE    = ord(data[0])
                 print errcode
+                a = self.statusRequest()
                 return errcode
 
         def cutCheck(self,cutType):

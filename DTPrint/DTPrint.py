@@ -48,9 +48,6 @@ CMD_ESCPOS = [\
         "cashdraw",\
         "sensors",\
 ]
-    
-    
-
 
 prlocks=[]
 def create_prlocks ():
